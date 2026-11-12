@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PoseAtlas · 角色姿势资产库</title>
+<meta name="description" content="288 组角色姿势（线稿 / 深度图）、2,727 套衣装、1,499 张人像的中英文生图 prompt 索引。图片请在原站查看。">
+<meta name="theme-color" content="#0b0c10">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">跳到内容</a>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#poses" aria-label="PoseAtlas">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="7" r="3.2"/><path d="M16 11v9m0 0-5 8m5-8 5 8M9 14l7-2 7 2"/></svg>
+      <span><b>PoseAtlas</b><small data-i="brandSub">角色姿势资产库</small></span>
+    </a>
+    <nav class="tabs" id="tabs" aria-label="主导航">
+      <a href="#poses" data-tab="poses"><span data-i="tabPoses">姿势</span><em id="cnt-poses"></em></a>
+      <a href="#costumes" data-tab="costumes"><span data-i="tabCostumes">衣装</span><em id="cnt-costumes"></em></a>
+      <a href="#portraits" data-tab="portraits"><span data-i="tabPortraits">人像</span><em id="cnt-portraits"></em></a>
+      <a href="#recipe" data-tab="recipe"><span data-i="tabRecipe">配方</span><em id="cnt-recipe"></em></a>
+      <a href="#favs" data-tab="favs"><span data-i="tabFavs">收藏</span><em id="cnt-favs"></em></a>
+      <a href="#about" data-tab="about"><span data-i="tabAbout">来源与授权</span></a>
+    </nav>
+    <div class="top-act">
+      <button class="pill" id="adultBtn" type="button" aria-pressed="false"></button>
+      <button class="pill" id="langBtn" type="button" aria-label="Language">EN</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="toolbar" id="toolbar" hidden>
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false">
+      <kbd>/</kbd>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="resultbar"><span id="resultInfo"></span><span class="hint" id="hint"></span></div>
+  </section>
+  <section id="view"></section>
+  <div id="sentinel" aria-hidden="true"></div>
+</main>
+
+<footer class="foot" id="foot"></footer>
+
+<dialog id="modal" class="modal" aria-labelledby="mTitle"><div class="modal-in" id="modalIn"></div></dialog>
+<dialog id="gate" class="modal gate">
+  <div class="modal-in">
+    <h2 data-i="gateTitle">显示 18+ 内容？</h2>
+    <p data-i="gateBody">部分姿势（全身性感系、上半身性感/强调系、双人系）与衣装（内衣・睡衣、性感穿搭）为成人向。确认你已年满 18 周岁，且所在地区允许浏览此类内容。站内只显示文字与 prompt，图片仍需在原站查看。</p>
+    <div class="row end">
+      <button class="btn ghost" id="gateNo" type="button" data-i="gateNo">保持隐藏</button>
+      <button class="btn warn" id="gateYes" type="button" data-i="gateYes">我已年满 18 岁，显示</button>
+    </div>
+  </div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data/meta.js"></script>
+<script src="data/poses.js"></script>
+<script src="data/costumes.js"></script>
+<script src="data/portraits.js"></script>
+<script src="assets/js/prompts.js"></script>
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

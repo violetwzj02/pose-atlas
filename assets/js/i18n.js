@@ -1,0 +1,47 @@
+/* 界面文案（简体中文 / English）。资产名称本身来自 data/*.js。 */
+window.PA_I18N = {
+  zh: {
+    brandSub: '角色姿势资产库', tabPoses: '姿势', tabCostumes: '衣装', tabPortraits: '人像', tabRecipe: '配方', tabFavs: '收藏', tabAbout: '来源与授权',
+    adultHidden: '18+ 已隐藏', adultShown: '18+ 已显示',
+    gateTitle: '显示 18+ 内容？', gateBody: '部分姿势（全身性感系、上半身性感/强调系、双人系）与衣装（内衣・睡衣、性感穿搭）为成人向。确认你已年满 18 周岁，且所在地区允许浏览此类内容。站内只显示文字与 prompt，图片仍需在原站查看。',
+    gateNo: '保持隐藏', gateYes: '我已年满 18 岁，显示',
+    qPoses: '搜索姿势名 / ID / 分类，中英日均可（如 站姿、hair、P012）', qCostumes: '搜索衣装 ID / 中文名 / 英文关键词（如 denim、蕾丝、SPR-0001）', qPortraits: '搜索发型 / ID（如 狼尾、bob、ボブ）', qFavs: '在收藏中搜索',
+    all: '全部', series: '体系', category: '分类', angle: '视角', mode: '图类型', set: '图库', color: '颜色', section: '分区', hair: '发长', style: '发型',
+    modeLine: '线稿', modeDepth: '灰模·深度', modeCompare: '对照',
+    setReal: '写实 COSTUME-DB-01', setAnime: '二次元 COSTUME-ANIME-DB',
+    results: '{n} 条结果', resultsOf: '{n} / {t} 条', hidden18: '（{n} 条 18+ 已隐藏）',
+    copyZh: '复制中文', copyEn: '复制 EN', copied: '已复制 ✓', copiedToast: '已复制到剪贴板', copyFail: '复制失败，请手动选择文本',
+    openSrc: '在原站查看', srcShort: '原站', openImg: '原站单图 ↗', openHome: '打开原站并复制 ID', idCopied: '已复制「{id}」。原站是单页图库，在其搜索框粘贴即可定位。',
+    noImgNote: '本站不转载图片。预览与下载请在原站进行，每次一张，勿批量下载。',
+    promptZh: '中文 prompt', promptEn: 'English prompt', addRecipe: '加入配方', inRecipe: '已在配方 ✓', fav: '收藏', unfav: '已收藏',
+    lineSite: '线稿 · POSE-DB-01', depthSite: '灰模/深度 · POSE-DB-02', depthNote: '深度图：越白越靠近镜头', missingAngle: '原站缺此视角',
+    keys: '← → 切换视角 · ↑ ↓ 上/下一个 · Esc 关闭', empty: '没有匹配的结果', emptyHint: '换个关键词，或在右上角显示 18+ 内容。',
+    recipeTitle: '组合配方', recipeIntro: '从姿势 / 衣装 / 人像各选一项（可只选部分），自动拼成一条多参考图 prompt。参考图请在原站逐张查看后按图号顺序上传给你的生图工具。',
+    slotPortrait: '图 · 人像（脸与发型）', slotCostume: '图 · 衣装', slotPose: '图 · 姿势', pick: '去挑选', remove: '移除', stylePreset: '画风预设', clear: '清空配方', refs: '参考图（按顺序）', recipeEmpty: '配方还是空的：在任意卡片或详情里点「加入配方」。',
+    favEmpty: '还没有收藏。在详情弹层点 ☆ 收藏。', more: '更多', poseCount: '{n} 组', angles: '{n} 视角',
+    footSrc: '图片与姿势数据原作者：ギア（@giaaibusi）· 人像：あぎ（@agi_aibusi）', footRule: '原站允许将图片作为参考用于创作（含商用、编辑）；禁止对图片本身（含原尺寸与加工后）再分发、转载、转售；禁止批量下载（含工具自动抓取）。本站不托管、不嵌入任何原图，只提供文字元数据、prompt 与原站链接。',
+    footCode: '站点代码 MIT；图片版权归原作者，不随 MIT 授权。', aboutLink: '完整来源与授权 →'
+  },
+  en: {
+    brandSub: 'Character pose library', tabPoses: 'Poses', tabCostumes: 'Outfits', tabPortraits: 'Portraits', tabRecipe: 'Recipe', tabFavs: 'Saved', tabAbout: 'Sources & license',
+    adultHidden: '18+ hidden', adultShown: '18+ shown',
+    gateTitle: 'Show 18+ content?', gateBody: 'Some poses (sexy full-body, bold upper-body, couples) and outfits (lingerie, sexy) are adult-oriented. Confirm you are 18 or older and allowed to view such content where you live. This site only shows text and prompts; images stay on the original sites.',
+    gateNo: 'Keep hidden', gateYes: 'I am 18+, show',
+    qPoses: 'Search pose name / ID / category in EN, ZH or JA (e.g. standing, hair, P012)', qCostumes: 'Search outfit ID / keywords (e.g. denim, lace, SPR-0001)', qPortraits: 'Search hairstyle / ID (e.g. wolf, bob)', qFavs: 'Search saved items',
+    all: 'All', series: 'Series', category: 'Category', angle: 'Angle', mode: 'Type', set: 'Library', color: 'Color', section: 'Section', hair: 'Length', style: 'Style',
+    modeLine: 'Line art', modeDepth: 'Depth', modeCompare: 'Compare',
+    setReal: 'Realistic COSTUME-DB-01', setAnime: 'Anime COSTUME-ANIME-DB',
+    results: '{n} results', resultsOf: '{n} / {t}', hidden18: ' ({n} 18+ hidden)',
+    copyZh: 'Copy ZH', copyEn: 'Copy EN', copied: 'Copied ✓', copiedToast: 'Copied to clipboard', copyFail: 'Copy failed — select the text manually',
+    openSrc: 'View on original site', srcShort: 'Source', openImg: 'Original image ↗', openHome: 'Open site & copy ID', idCopied: 'Copied "{id}". The original is a single-page gallery — paste it into its search box.',
+    noImgNote: 'Images are not re-hosted here. Preview and download on the original site, one at a time — no bulk downloads.',
+    promptZh: 'Chinese prompt', promptEn: 'English prompt', addRecipe: 'Add to recipe', inRecipe: 'In recipe ✓', fav: 'Save', unfav: 'Saved',
+    lineSite: 'Line art · POSE-DB-01', depthSite: 'Depth · POSE-DB-02', depthNote: 'Depth map: whiter = closer', missingAngle: 'Angle missing on source',
+    keys: '← → angle · ↑ ↓ prev/next · Esc close', empty: 'No matches', emptyHint: 'Try another keyword, or show 18+ content (top right).',
+    recipeTitle: 'Recipe', recipeIntro: 'Pick a pose, an outfit and a portrait (any subset) to build one multi-reference prompt. Open each reference on its original site and upload them to your tool in image order.',
+    slotPortrait: 'Image · Portrait (face & hair)', slotCostume: 'Image · Outfit', slotPose: 'Image · Pose', pick: 'Browse', remove: 'Remove', stylePreset: 'Style preset', clear: 'Clear recipe', refs: 'References (in order)', recipeEmpty: 'The recipe is empty — use "Add to recipe" on any card or detail view.',
+    favEmpty: 'Nothing saved yet. Use ☆ in a detail view.', more: 'More', poseCount: '{n} poses', angles: '{n} angles',
+    footSrc: 'Images & pose data by ギア (@giaaibusi) · Portraits by あぎ (@agi_aibusi)', footRule: 'The original sites allow using the images as references for your own work (incl. commercial use and editing). Redistributing, reposting or reselling the images themselves (original or edited) is prohibited, as is bulk downloading (incl. automated scraping). This site hosts and embeds no original images — only text metadata, prompts and links.',
+    footCode: 'Site code: MIT. Image copyright stays with the original authors and is not covered by MIT.', aboutLink: 'Full sources & license →'
+  }
+};

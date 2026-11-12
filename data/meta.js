@@ -1,0 +1,2 @@
+/* 自动生成：scripts/build_data.py — 仅文字元数据，不含图片 */
+window.PA_META={"built":"2026-11-13","counts":{"poses":288,"poseImagesPerMode":1439,"angles":5,"series":4,"poseCategories":26,"costumesReal":1407,"costumesAnime":1320,"portraits":1499,"portraitStyles":51},"missing":["full_sexy_P018_low"]};
