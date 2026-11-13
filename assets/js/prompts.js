@@ -9,7 +9,9 @@
     depth:    { name: 'POSE-DB-02 深度',        home: 'https://ai-pose-depth-gallery.pages.dev/' },
     real:     { name: 'COSTUME-DB-01 衣装',     home: 'https://ai-costume-gallery.pages.dev/' },
     anime:    { name: 'COSTUME-ANIME-DB 衣装',  home: 'https://ai-costume-anime-gallery.pages.dev/' },
-    portrait: { name: 'AIモデル顔データベース', home: 'https://ai-portrait-gallery.pages.dev/' }
+    portrait: { name: 'AIモデル顔データベース', home: 'https://ai-portrait-gallery.pages.dev/' },
+    shisei:   { name: 'Shisei CC0 姿势线稿',     home: 'https://shisei.indaloop.app/' },
+    chara:    { name: 'キャラ組み立てDB',         home: 'https://charadb-2fi.pages.dev/' }
   };
   var HAIR_JA = { short: 'ショート', medium: 'ミディアム', semilong: 'セミロング', long: 'ロング' };
 
@@ -27,6 +29,18 @@
     portrait: function (item) {
       var h = '#' + (item.sec === 'styling' ? 'sec=styling&' : '') + 'hair=' + encodeURIComponent(HAIR_JA[item.h]);
       return { home: SITES.portrait.home + h, image: SITES.portrait.home + 'img/full/' + item.id + '.png', thumb: SITES.portrait.home + 'img/thumb/' + item.id + '.webp', search: item.id };
+    },
+    shisei: function (kind, item, angle) {
+      var file = item.files && item.files[angle] ? item.files[angle] : '';
+      var k = kind === 'clay' || kind === 'depth' ? kind : 'line';
+      var base = SITES.shisei.home + 'images/' + k + '/';
+      return { home: SITES.shisei.home, image: file ? base + 'w900/' + file : SITES.shisei.home, thumb: file ? base + 'w300/' + file : SITES.shisei.home, search: item.id };
+    },
+    character: function (item, opts) {
+      opts = opts || {};
+      var id = opts.id || item.id;
+      if (opts.line) return { home: SITES.chara.home, image: SITES.chara.home + 'line/' + id + '.png', thumb: SITES.chara.home + 'line/' + id + '.png', search: id };
+      return { home: SITES.chara.home, image: SITES.chara.home + 'img/' + id + '.jpg', thumb: SITES.chara.home + 'thumb/' + id + '.webp', search: id };
     }
   };
 
@@ -35,13 +49,17 @@
     diag:  { zh: '斜侧 45° 镜头', en: 'three-quarter view (45°)' },
     side:  { zh: '侧面镜头', en: 'side view (profile)' },
     high:  { zh: '俯视镜头（从上往下拍）', en: 'high-angle shot looking down' },
-    low:   { zh: '仰视镜头（从下往上拍）', en: 'low-angle shot looking up' }
+    low:   { zh: '仰视镜头（从下往上拍）', en: 'low-angle shot looking up' },
+    above: { zh: '俯视镜头（从上往下拍）', en: 'high-angle shot looking down' },
+    below: { zh: '仰视镜头（从下往上拍）', en: 'low-angle shot looking up' }
   };
   var FRAMING = {
     full_sexy:  { zh: '一位成年角色，全身构图', en: 'one adult character, full-body shot' },
     full_std:   { zh: '一位成年角色，全身构图', en: 'one adult character, full-body shot' },
     upper:      { zh: '一位成年角色，上半身构图', en: 'one adult character, upper-body shot (waist up)' },
-    duo:        { zh: '两位成年角色互动，双人构图', en: 'two adult characters interacting, two-person shot' }
+    duo:        { zh: '两位成年角色互动，双人构图', en: 'two adult characters interacting, two-person shot' },
+    std:        { zh: '一位成年角色，全身构图', en: 'one adult character, full-body shot' },
+    sexy:       { zh: '一位成年角色，全身构图', en: 'one adult character, full-body shot' }
   };
   var REF = {
     line:  { zh: '灰色无脸人台线稿', en: 'grey faceless mannequin line-art reference', mat: { zh: '灰色人台与线稿', en: 'grey mannequin / line-art' },
@@ -92,6 +110,59 @@
           (face ? ' (front-facing face reference on a plain background)' : '; the overall styling mood and hair texture may also be referenced') + '.\n' +
           'Regenerate outfit, pose and background as requested; keep exposed skin tone consistent with the face, natural features and hands. ' + TAIL.en,
       tip: { zh: '用法：作为角色/脸部参考图（Character / Face reference、InstantID、PuLID 等）。AI 生成的虚构人物，勿用于冒充真实人物。', en: 'Use as a character/face reference (InstantID, PuLID, etc.). Fictional AI-generated people; never impersonate real people.' }
+    };
+  }
+
+
+  function shisei(p, opt) {
+    opt = opt || {};
+    var mode = opt.mode === 'clay' ? 'clay' : opt.mode === 'depth' ? 'depth' : 'line';
+    var a = opt.angle || (p.a && p.a[0]) || 'front';
+    var g = ANGLE[a] || ANGLE.front;
+    var f = FRAMING[p.s] || FRAMING.std;
+    var ref = mode === 'depth'
+      ? { zh: '深度图（越白越靠近镜头）', en: 'depth map (whiter = closer to camera)', mat: { zh: '深度图灰阶', en: 'depth-map greyscale' } }
+      : mode === 'clay'
+        ? { zh: '无脸白模参考', en: 'faceless clay mannequin reference', mat: { zh: '白模材质', en: 'clay-mannequin material' } }
+        : { zh: '无脸人偶线稿', en: 'faceless mannequin line-art reference', mat: { zh: '线稿人偶', en: 'line-art mannequin' } };
+    var cat = opt.cat || { zh: p.c, en: p.c };
+    return {
+      zh: f.zh + '，' + g.zh + '。\n姿势：' + p.zh + '（' + (cat.zh || p.c) + '）。\n动作细节：' + (p.desc || p.en) + '。\n严格按参考图中' + ref.zh + '的动作、肢体朝向与镜头角度摆姿势；参考图只提供姿势与构图，不复制其' + ref.mat.zh + '外观。\n脸部、发型、服装、背景与画风按需另行描述，人物比例协调，手部自然。' + TAIL.zh,
+      en: f.en + ', ' + g.en + '.\nPose: ' + p.en + ' (' + (cat.en || p.c) + ').\nAction: ' + (p.desc || p.en) + '.\nMatch the pose, limb placement and camera angle of the attached ' + ref.en + ' exactly; use it only for pose and composition, do not copy its ' + ref.mat.en + ' look.\nDescribe face, hair, outfit, background and art style separately; natural body proportions and hands. ' + TAIL.en,
+      tip: { zh: '图片为 CC0 1.0，可商用、可再分发。用法：姿势/构图参考，或 Lineart / Depth / 白模 ControlNet。', en: 'Images are CC0 1.0 (commercial use and redistribution allowed). Use as pose/composition reference or Lineart / Depth / clay ControlNet.' }
+    };
+  }
+
+  var COLOR_TAG = {
+    brown: { zh: '棕色头发', en: 'brown hair' },
+    black: { zh: '黑色头发', en: 'black hair' },
+    blonde: { zh: '金色头发', en: 'blonde hair' },
+    pink: { zh: '粉色头发', en: 'pink hair' },
+    silver: { zh: '银色头发', en: 'silver hair' }
+  };
+
+  function character(it, opt) {
+    opt = opt || {};
+    var color = opt.color || it.color || '';
+    var tags = it.tags || '';
+    var zhName = it.zh || it.jp || it.id;
+    var cat = it.catZh || it.cat || '';
+    if (it.sub === 'style' && color && color !== 'brown' && COLOR_TAG[color]) {
+      if (tags.indexOf(COLOR_TAG[color].en) < 0) tags = tags + ', ' + COLOR_TAG[color].en;
+      zhName = zhName + '（' + COLOR_TAG[color].zh + '）';
+    }
+    var kindZh = it.set === 'outfit' ? '服装' : it.set === 'pose' ? '姿势' : '角色设定';
+    var kindEn = it.set === 'outfit' ? 'Outfit' : it.set === 'pose' ? 'Pose' : 'Character design';
+    var line = !!opt.line;
+    return {
+      zh: kindZh + '：' + zhName + (cat ? '（' + cat + '）' : '') + '。\n标签：' + tags + '。\n' +
+          (line ? '按参考图中的姿势线稿摆姿势，可用于 Lineart / Canny ControlNet；不要复制线稿的无脸人偶外观。\n' : '按照参考图中的' + kindZh + '特征生成，标签可直接用于 Illustrious / NoobAI / NovelAI 等标签模型。\n') +
+          '这是二次元风格的设定参考，禁止用于表现真实人物或未成年人。' + TAIL.zh,
+      en: kindEn + ': ' + tags + '.\n' +
+          (line ? 'Match the pose of the attached line-art reference; usable as Lineart / Canny ControlNet input. Do not copy the faceless mannequin look.\n' : 'Follow the ' + kindEn.toLowerCase() + ' shown in the reference. Tags are Danbooru-style and work in Illustrious / NoobAI / NovelAI.\n') +
+          'Anime-style character reference; do not use to depict real people or minors. ' + TAIL.en,
+      tags: tags,
+      tip: { zh: '原作者允许用于作品制作与商用，禁止再分发原图或加工图，禁止用于真实人物或未成年人。', en: 'The author allows use in (including commercial) works; do not redistribute original or edited images, and do not depict real people or minors.' }
     };
   }
 
@@ -149,6 +220,6 @@
     };
   }
 
-  var api = { SITES: SITES, links: links, ANGLE: ANGLE, STYLES: STYLES, pose: pose, costume: costume, portrait: portrait, recipe: recipe };
+  var api = { SITES: SITES, links: links, ANGLE: ANGLE, STYLES: STYLES, COLOR_TAG: COLOR_TAG, pose: pose, costume: costume, portrait: portrait, shisei: shisei, character: character, recipe: recipe };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.PAPrompt = api;
 })(typeof window !== 'undefined' ? window : this);

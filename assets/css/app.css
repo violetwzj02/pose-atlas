@@ -240,3 +240,20 @@ html:not([data-theme="dark"]) .src .vis.line .preview{mix-blend-mode:multiply}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .pl-adult{display:none}
+
+/* card prompt + hair color */
+.cacts{display:flex;gap:8px;align-items:center;padding:8px 4px 0;flex-wrap:wrap}
+.cacts .btn{flex:none}
+.dots{display:flex;gap:6px;align-items:center;margin-top:8px;padding:0 4px}
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);flex:none}
+.dot.on{border-color:var(--sel);box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--sel)}
+.sub2{margin-top:2px;font-size:11.5px;color:var(--mu);font-family:var(--mono)}
+.colorbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.colorbar label{font-size:13px;color:var(--tx2)}
+html:not([data-theme="dark"]) .vis.shi .thumb,
+html:not([data-theme="dark"]) .strip.shi img{mix-blend-mode:multiply}
+.tabs{flex-wrap:wrap}
+.tabs a em{font-style:normal;font-size:11px;opacity:.65;margin-left:4px;font-variant-numeric:tabular-nums}
+.colorbar .seg button{display:inline-flex;align-items:center;gap:6px}
+.colorbar .sw{display:inline-block;flex:none}
+.cacts{justify-content:flex-start}

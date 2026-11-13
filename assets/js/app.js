@@ -1,7 +1,7 @@
 /* PoseAtlas · 纯静态前端（无构建、无依赖）。数据来自 data/*.js，prompt 来自 assets/js/prompts.js */
 (function () {
   'use strict';
-  var P = window.PA_POSES, C = window.PA_COSTUMES, R = window.PA_PORTRAITS, META = window.PA_META, PR = window.PAPrompt, I18N = window.PA_I18N;
+  var P = window.PA_POSES, C = window.PA_COSTUMES, R = window.PA_PORTRAITS, SH = window.PA_SHISEI, CH = window.PA_CHARA, META = window.PA_META, PR = window.PAPrompt, I18N = window.PA_I18N;
   var $ = function (s, el) { return (el || document).querySelector(s); };
   var LS = {
     get: function (k, d) { try { var v = localStorage.getItem('pa_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -17,9 +17,11 @@
     f: LS.get('filters', {}), favs: LS.get('favs', []), recipe: LS.get('recipe', { style: 'none' }), list: [], shown: 0
   };
   var UP = { list: [], urls: {} };
-  ['poses', 'costumes', 'portraits', 'favs', 'uploads'].forEach(function (t) { S.f[t] = S.f[t] || {}; S.f[t].q = ''; });
+  ['poses', 'costumes', 'portraits', 'shisei', 'characters', 'anime', 'favs', 'uploads'].forEach(function (t) { S.f[t] = S.f[t] || {}; S.f[t].q = ''; });
   var fp = S.f.poses; fp.mode = fp.mode || 'line'; fp.angle = fp.angle || 'front';
-  var fc = S.f.costumes; fc.set = fc.set || 'real';
+  var fc = S.f.costumes; fc.set = 'real';
+  var fshi = S.f.shisei; fshi.mode = fshi.mode || 'line';
+  var fch = S.f.characters; fch.set = fch.set || 'hair'; fch.color = fch.color || 'brown';
   var t = function (k) { return (I18N[S.lang] || I18N.zh)[k] || I18N.zh[k] || k; };
   var L = function (o) { return o ? (o[S.lang] || o.zh || o.en || '') : ''; };
   var saveF = function () { var c = JSON.parse(JSON.stringify(S.f)); Object.keys(c).forEach(function (k) { delete c[k].q; }); LS.set('filters', c); };
@@ -33,7 +35,10 @@
   R.sections.forEach(function (s) { secBy[s.key] = s; });
   C.categories.forEach(function (c) { ccatBy[c.key] = c; });
   var norm = function (s) { return String(s).toLowerCase().normalize('NFKC'); };
-  var poseBy = {}, cosBy = {}, porBy = {};
+  var poseBy = {}, cosBy = {}, porBy = {}, shiBy = {}, chaBy = {};
+  var cardColors = {};
+  var COS_SHORT = { spring: ['春', 'Spring'], summer: ['夏', 'Summer'], autumn: ['秋', 'Autumn'], winter: ['冬', 'Winter'], swimwear: ['泳装', 'Swim'], party: ['派对', 'Party'], lingerie: ['内衣', 'Lingerie'], sexy: ['性感', 'Sexy'] };
+  var shortCat = function (key) { var x = COS_SHORT[key]; return x ? (S.lang === 'en' ? x[1] : x[0]) : L(ccatBy[key]); };
   P.items.forEach(function (p) {
     var c = catBy[p.c], s = seriesBy[p.s];
     p.k = 'pose:' + p.id; poseBy[p.id] = p;
@@ -47,18 +52,40 @@
     var st = R.styles[r.st], h = hairBy[r.h], sec = secBy[r.sec]; r.k = 'por:' + r.id; porBy[r.id] = r;
     r.ix = norm([r.id, st.ja, st.zh, st.en, h.zh, h.en, h.ja, sec.zh, sec.en].join(' '));
   });
+  SH.items.forEach(function (p) {
+    p.k = 'shi:' + p.id; shiBy[p.id] = p;
+    p.ix = norm([p.id, p.zh, p.en, p.ja, p.desc, p.c, p.s].join(' '));
+  });
+  CH.items.concat(CH.variants).forEach(function (it) {
+    it.k = 'chara:' + it.id; chaBy[it.id] = it;
+    it.ix = norm([it.id, it.zh, it.jp, it.tags, it.cat, it.catZh, it.sub || '', it.color || ''].join(' '));
+  });
   var byKey = function (k) {
     if (!k) return;
     var a = k.split(':');
     if (a[0] === 'pose') return poseBy[a[1]];
     if (a[0] === 'cos') return cosBy[a[1] + ':' + a[2]];
     if (a[0] === 'por') return porBy[a[1]];
+    if (a[0] === 'shi') return shiBy[a[1]];
+    if (a[0] === 'chara') return chaBy[a[1]];
     if (a[0] === 'up') {
       for (var i = 0; i < UP.list.length; i++) if (UP.list[i].id === a[1] || UP.list[i].k === k) return UP.list[i];
     }
   };
   var kind = function (it) { return it && it.k ? it.k.split(':')[0] : ''; };
   var match = function (it, q) { if (!q) return true; var ts = norm(q).split(/\s+/); for (var i = 0; i < ts.length; i++) if (ts[i] && it.ix.indexOf(ts[i]) < 0) return false; return true; };
+  var shiSeries = {}; SH.series.forEach(function (s) { shiSeries[s.key] = s; });
+  var shiAng = {}; SH.angles.forEach(function (a) { shiAng[a.key] = a; });
+  var charaColorOf = function (it) {
+    if (it.color) return it.color;
+    if (it.colors && it.colors.length) return cardColors[it.id] || (S.f.characters && S.f.characters.color) || 'brown';
+    return '';
+  };
+  var charaImgId = function (it) {
+    var c = charaColorOf(it);
+    if (it.colors && c && c !== 'brown' && it.colors.indexOf(c) >= 0) return it.id + '-' + c;
+    return it.id;
+  };
 
   /* ---------- svg glyphs (示意图标，非原图) ---------- */
   var G = function (vb, d, w) { return '<svg class="fig" viewBox="' + vb + '"' + (w ? ' style="width:' + w + '"' : '') + '>' + d + '</svg>'; };
@@ -104,6 +131,16 @@
     var k = kind(it);
     if (k === 'pose') return posePrompt(it, mode || fp.mode, angle || fp.angle);
     if (k === 'cos') return PR.costume(it);
+    if (k === 'shi') {
+      var md = mode || (S.f.shisei && S.f.shisei.mode) || 'line';
+      var ang = angle || (it.a && it.a[0]) || 'front';
+      if (it.a && it.a.indexOf(ang) < 0) ang = it.a[0];
+      return PR.shisei(it, { mode: md, angle: ang, cat: { zh: it.c, en: it.c } });
+    }
+    if (k === 'chara') {
+      var useLine = mode === 'line' || (!mode && S.tab === 'characters' && S.f.characters && S.f.characters.line && it.line) || (M.k === it.k && M.mode === 'line' && it.line);
+      return PR.character(it, { color: charaColorOf(it), line: !!useLine });
+    }
     if (k === 'up') return { zh: it.promptZh || it.title || '', en: it.promptEn || it.titleEn || it.title || '', tip: { zh: '', en: '' } };
     return PR.portrait(it, R.styles[it.st], hairBy[it.h], secBy[it.sec]);
   }
@@ -111,6 +148,13 @@
     var k = kind(it);
     if (k === 'pose') { var a = it.a.indexOf(angle || fp.angle) >= 0 ? (angle || fp.angle) : it.a[0]; return PR.links.pose((mode || fp.mode) === 'depth' ? 'depth' : 'line', it.id, a); }
     if (k === 'cos') return PR.links.costume(it.set, it.id);
+    if (k === 'shi') {
+      var md = mode || (S.f.shisei && S.f.shisei.mode) || 'line';
+      var ang = angle || (it.a && it.a[0]) || 'front';
+      if (it.a && it.a.indexOf(ang) < 0) ang = it.a[0];
+      return PR.links.shisei(md, it, ang);
+    }
+    if (k === 'chara') return PR.links.character({ id: charaImgId(it) }, { line: mode === 'line' });
     if (k === 'up') { var u = UP.urls[it.id] || ''; return { home: '#uploads', image: u, thumb: u, search: it.id }; }
     return PR.links.portrait(it);
   }
@@ -118,15 +162,23 @@
   /* ---------- cards ---------- */
   function title(it) {
     var k = kind(it);
-    if (k === 'pose') return S.lang === 'en' ? it.en : it.zh;
+    if (k === 'pose' || k === 'shi') return S.lang === 'en' ? it.en : it.zh;
     if (k === 'cos') return S.lang === 'en' ? it.kw : (it.zh || it.kw);
+    if (k === 'chara') {
+      var name = S.lang === 'en' ? (it.tags.split(',')[0] || it.zh) : it.zh;
+      var col = charaColorOf(it);
+      if (it.sub === 'style' && col && col !== 'brown' && CH.colors[col]) name = (S.lang === 'en' ? it.tags : it.zh) + (S.lang === 'en' ? ' (' + CH.colors[col].en + ')' : '（' + CH.colors[col].zh + '）');
+      return name;
+    }
     if (k === 'up') return S.lang === 'en' ? (it.titleEn || it.title) : (it.title || it.titleEn);
     var st = R.styles[it.st]; return st.ja ? L(st) : L(hairBy[it.h]) + ' · ' + L(st);
   }
   function subtitle(it) {
     var k = kind(it);
     if (k === 'pose') return L(seriesBy[it.s]) + ' · ' + L(catBy[it.c]);
-    if (k === 'cos') return L(ccatBy[it.c]) + (it.set === 'anime' ? ' · 2D' : '');
+    if (k === 'shi') return L(shiSeries[it.s]) + ' · ' + it.c;
+    if (k === 'cos') return (S.tab === 'anime' ? shortCat(it.c) : L(ccatBy[it.c])) + (it.set === 'anime' ? ' · 2D' : '');
+    if (k === 'chara') return (S.lang === 'en' ? it.tags : it.catZh) + (S.lang === 'en' ? '' : ' · ' + it.tags);
     if (k === 'up') return (it.type || '') + (it.tags ? ' · ' + it.tags : '');
     var st = R.styles[it.st]; return L(hairBy[it.h]) + (st && st.ja ? ' · ' + L(st) : '');
   }
@@ -146,6 +198,16 @@
     if (k === 'cos') {
       return '<div class="vis cos">' + thumbImg(PR.links.costume(it.set, it.id).thumb, ttl) + b + '<span class="badge">' + esc(it.id) + '</span></div>';
     }
+    if (k === 'shi') {
+      var md = (S.f.shisei && S.f.shisei.mode) || 'line';
+      var ang = it.a[0];
+      var cls = md === 'depth' ? 'depth shi' : 'line shi';
+      return '<div class="vis ' + cls + '">' + thumbImg(PR.links.shisei(md, it, ang).thumb, ttl) + b + '<span class="badge">' + esc(it.no) + '</span></div>';
+    }
+    if (k === 'chara') {
+      var line = S.tab === 'characters' && S.f.characters.line && it.line;
+      return '<div class="vis chara">' + thumbImg(PR.links.character({ id: charaImgId(it) }, { line: line }).thumb, ttl) + b + '<span class="badge">' + esc(it.id) + '</span></div>';
+    }
     if (k === 'up') {
       var src = UP.urls[it.id] || '';
       return '<div class="vis up">' + (src ? thumbImg(src, ttl) : '') + b + '<span class="badge">' + esc(it.id) + '</span></div>';
@@ -153,7 +215,18 @@
     return '<div class="vis por">' + thumbImg(PR.links.portrait(it).thumb, ttl) + b + '<span class="badge">' + esc(it.id) + '</span></div>';
   }
   function angleStrip(it) {
-    if (kind(it) !== 'pose' || fp.mode === 'compare') return '';
+    var k = kind(it);
+    if (k === 'shi') {
+      var md = (S.f.shisei && S.f.shisei.mode) || 'line';
+      var cur = it.a[0];
+      return '<div class="strip shi">' + SH.angles.map(function (a) {
+        var ok = it.a.indexOf(a.key) >= 0;
+        var src = ok ? PR.links.shisei(md, it, a.key).thumb : '';
+        return '<button type="button" class="' + (a.key === cur ? 'on' : '') + (ok ? '' : ' x') + '" data-act="ang" data-v="' + a.key + '"' + (ok ? '' : ' disabled') + ' title="' + esc(L(a)) + '">' +
+          (ok ? '<img alt="" src="' + esc(src) + '" width="80" height="107" loading="lazy" decoding="async" referrerpolicy="no-referrer">' : '') + '</button>';
+      }).join('') + '</div>';
+    }
+    if (k !== 'pose' || fp.mode === 'compare') return '';
     var cur = it.a.indexOf(fp.angle) >= 0 ? fp.angle : it.a[0];
     var m = fp.mode === 'depth' ? 'depth' : 'line';
     return '<div class="strip">' + P.angles.map(function (a) {
@@ -162,6 +235,18 @@
       return '<button type="button" class="' + (a.key === cur ? 'on' : '') + (ok ? '' : ' x') + '" data-act="ang" data-v="' + a.key + '"' + (ok ? '' : ' disabled') + ' title="' + esc(L(a)) + '">' +
         (ok ? '<img alt="" src="' + esc(src) + '" width="80" height="107" loading="lazy" decoding="async" referrerpolicy="no-referrer">' : '') + '</button>';
     }).join('') + '</div>';
+  }
+  function colorDots(it) {
+    if (kind(it) !== 'chara' || !it.colors || !it.colors.length) return '';
+    var cur = charaColorOf(it);
+    return '<div class="dots">' + it.colors.map(function (c) {
+      var hex = (CH.colors[c] && CH.colors[c].hex) || '#ccc';
+      return '<button type="button" class="dot' + (c === cur ? ' on' : '') + '" data-act="col" data-v="' + c + '" title="' + esc((CH.colors[c] && (S.lang === 'en' ? CH.colors[c].en : CH.colors[c].zh)) || c) + '" style="background:' + hex + '"></button>';
+    }).join('') + '</div>';
+  }
+  function cardActs(it) {
+    var lang = S.lang === 'en' ? 'en' : 'zh';
+    return '<div class="cacts"><button class="btn sm" type="button" data-act="copy" data-lang="' + lang + '">' + t('copyPrompt') + '</button></div>';
   }
   function cardMeta(it) {
     var k = kind(it), m = [];
@@ -173,7 +258,7 @@
   function card(it) {
     var extra = kind(it) === 'up' ? '<div class="row" style="padding:6px 4px 0"><button class="btn sm" type="button" data-act="udel" data-id="' + esc(it.id) + '">' + t('upDel') + '</button></div>' : '';
     return '<article class="card" data-k="' + esc(it.k) + '" tabindex="0">' + cardVis(it) +
-      '<div class="info"><h3>' + esc(title(it)) + '</h3><div class="sub">' + esc(subtitle(it)) + '</div></div>' + angleStrip(it) + extra + '</article>';
+      '<div class="info"><h3>' + esc(title(it)) + '</h3><div class="sub">' + esc(subtitle(it)) + '</div></div>' + colorDots(it) + angleStrip(it) + cardActs(it) + extra + '</article>';
   }
 
   /* ---------- filters ---------- */
@@ -198,12 +283,9 @@
       h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""') + P.categories.filter(function (c) { return cats[c.key]; }).map(function (c) {
         return chip(esc(L(c)), f.c === c.key, 'data-f="c" data-v="' + esc(c.key) + '"', cats[c.key]); }).join('') + '</div>';
     } else if (S.tab === 'costumes') {
-      var visC = C.items.filter(adultOK);
-      h += '<div class="frow"><label>' + t('set') + '</label><div class="seg">' + ['real', 'anime'].map(function (s) {
-        return '<button type="button" data-f="set" data-v="' + s + '" class="' + (f.set === s ? 'on' : '') + '">' + t(s === 'real' ? 'setReal' : 'setAnime') + ' <span class="n" style="color:var(--tx3)">' + visC.filter(function (c) { return c.set === s; }).length + '</span></button>'; }).join('') + '</div></div>';
-      var inSet = visC.filter(function (c) { return c.set === f.set; });
-      h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""', inSet.length) + C.categories.map(function (c) {
-        var n = inSet.filter(function (x) { return x.c === c.key; }).length; if (!n) return '';
+      var visC = C.items.filter(function (c) { return c.set === 'real' && adultOK(c); });
+      h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""', visC.length) + C.categories.map(function (c) {
+        var n = visC.filter(function (x) { return x.c === c.key; }).length; if (!n) return '';
         if (!S.adult && (c.key === 'lingerie' || c.key === 'sexy')) return chip(esc(L(c)), false, 'data-need-adult="1" data-f="c" data-v="' + c.key + '"', '18+', ' adult');
         return chip(esc(L(c)), f.c === c.key, 'data-f="c" data-v="' + c.key + '"', n, (c.key === 'lingerie' || c.key === 'sexy') ? ' adult' : ''); }).join('') + '</div>';
       h += '<div class="frow"><label>' + t('color') + '</label>' + chip(t('all'), !f.col, 'data-f="col" data-v=""') + C.colors.map(function (k) {
@@ -215,6 +297,56 @@
         return chip(esc(L(x)), f.h === x.key, 'data-f="h" data-v="' + x.key + '"', x.count); }).join('') + '</div>';
       h += '<div class="frow"><label>' + t('style') + '</label><select class="sel" data-f="st"><option value="">' + t('all') + ' (' + R.styles.length + ')</option>' + R.styles.map(function (s, i) {
         return '<option value="' + i + '"' + (String(f.st) === String(i) ? ' selected' : '') + '>' + esc(s.ja ? L(s) : L(s)) + '</option>'; }).join('') + '</select></div>';
+    } else if (S.tab === 'shisei') {
+      h += '<div class="frow"><label>' + t('mode') + '</label><div class="seg" role="group">' + ['line', 'clay', 'depth'].map(function (m) {
+        return '<button type="button" data-f="mode" data-v="' + m + '" class="' + (f.mode === m ? 'on' : '') + '">' + t(m === 'line' ? 'modeLine' : m === 'clay' ? 'modeClay' : 'modeDepth') + '</button>'; }).join('') + '</div></div>';
+      var visS = SH.items.filter(adultOK);
+      h += '<div class="frow"><label>' + t('series') + '</label>' + chip(t('all'), !f.s, 'data-f="s" data-v=""', visS.length) + SH.series.map(function (s) {
+        var n = visS.filter(function (p) { return p.s === s.key; }).length;
+        if (!S.adult && s.adult) return chip(esc(L(s)), false, 'data-need-adult="1" data-f="s" data-v="' + s.key + '"', '18+', ' adult');
+        return chip(esc(L(s)), f.s === s.key, 'data-f="s" data-v="' + s.key + '"', n, s.adult ? ' adult' : ''); }).join('') + '</div>';
+      var catsS = {}; visS.forEach(function (p) { if (!f.s || p.s === f.s) catsS[p.c] = (catsS[p.c] || 0) + 1; });
+      h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""') + SH.categories.filter(function (c) { return catsS[c.key]; }).map(function (c) {
+        return chip(esc(L(c)), f.c === c.key, 'data-f="c" data-v="' + esc(c.key) + '"', catsS[c.key]); }).join('') + '</div>';
+    } else if (S.tab === 'characters') {
+      var visH = CH.items.filter(adultOK);
+      h += '<div class="frow"><label></label><div class="seg" role="group">' + CH.sets.map(function (s) {
+        var n = visH.filter(function (i) { return i.set === s.key; }).length;
+        return '<button type="button" data-f="set" data-v="' + s.key + '" class="' + (f.set === s.key ? 'on' : '') + '">' + (S.lang === 'en' ? s.en : s.zh) + ' <span class="n">' + n + '</span></button>';
+      }).join('') + '</div></div>';
+      var inSet = visH.filter(function (i) { return i.set === (f.set || 'hair'); });
+      if ((f.set || 'hair') === 'hair') {
+        h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.sub, 'data-f="sub" data-v=""', inSet.length) + CH.subs.map(function (sub) {
+          var n = inSet.filter(function (i) { return i.sub === sub.key; }).length;
+          if (!n) return '';
+          return chip(esc(S.lang === 'en' ? sub.en : sub.zh), f.sub === sub.key, 'data-f="sub" data-v="' + sub.key + '"', n);
+        }).join('') + '</div>';
+        h += '<div class="frow colorbar"><label>' + t('previewColor') + '</label><div class="seg">' + Object.keys(CH.colors).map(function (c) {
+          var o = CH.colors[c];
+          return '<button type="button" data-f="color" data-v="' + c + '" class="' + ((f.color || 'brown') === c ? 'on' : '') + '"><span class="sw" style="background:' + o.hex + '"></span>' + esc(S.lang === 'en' ? o.en : o.zh) + '</button>';
+        }).join('') + '</div>' +
+          chip(t('favOnly'), !!f.favs, 'data-f="favs" data-v="1"') + '</div>';
+      } else {
+        var catsC = {}; inSet.forEach(function (i) { catsC[i.cat] = (catsC[i.cat] || 0) + 1; });
+        h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""', inSet.length) + Object.keys(catsC).map(function (cat) {
+          var lab = (inSet.filter(function (i) { return i.cat === cat; })[0] || {}).catZh || cat;
+          var adultCat = inSet.some(function (i) { return i.cat === cat && i.adult; }) && !inSet.some(function (i) { return i.cat === cat && !i.adult; });
+          if (!S.adult && adultCat) return chip(esc(S.lang === 'en' ? cat : lab), false, 'data-need-adult="1" data-f="c" data-v="' + esc(cat) + '"', '18+', ' adult');
+          return chip(esc(S.lang === 'en' ? cat : lab), f.c === cat, 'data-f="c" data-v="' + esc(cat) + '"', catsC[cat]);
+        }).join('') + '</div>';
+        if ((f.set || '') === 'pose') {
+          h += '<div class="frow"><label>' + t('mode') + '</label><div class="seg">' +
+            '<button type="button" data-f="line" data-v="" class="' + (!f.line ? 'on' : '') + '">' + t('charaDraw') + '</button>' +
+            '<button type="button" data-f="line" data-v="1" class="' + (f.line ? 'on' : '') + '">' + t('charaLine') + '</button></div></div>';
+        }
+      }
+    } else if (S.tab === 'anime') {
+      var visA = C.items.filter(function (c) { return c.set === 'anime' && adultOK(c); });
+      h += '<div class="frow"><label>' + t('category') + '</label>' + chip(t('all'), !f.c, 'data-f="c" data-v=""', visA.length) + C.categories.map(function (c) {
+        var n = visA.filter(function (x) { return x.c === c.key; }).length; if (!n) return '';
+        var lab = shortCat(c.key);
+        if (!S.adult && (c.key === 'lingerie' || c.key === 'sexy')) return chip(lab, false, 'data-need-adult="1" data-f="c" data-v="' + c.key + '"', '18+', ' adult');
+        return chip(lab, f.c === c.key, 'data-f="c" data-v="' + c.key + '"', n, (c.key === 'lingerie' || c.key === 'sexy') ? ' adult' : ''); }).join('') + '</div>';
     }
     $('#filters').innerHTML = h;
   }
@@ -222,8 +354,14 @@
   function compute() {
     var f = S.f[S.tab] || {}, q = f.q, src, hidden = 0;
     if (S.tab === 'poses') src = P.items.filter(function (p) { return (!f.s || p.s === f.s) && (!f.c || p.c === f.c) && match(p, q); });
-    else if (S.tab === 'costumes') src = C.items.filter(function (c) { return c.set === f.set && (!f.c || c.c === f.c) && (!f.col || c.col === f.col) && match(c, q); });
+    else if (S.tab === 'costumes') src = C.items.filter(function (c) { return c.set === 'real' && (!f.c || c.c === f.c) && (!f.col || c.col === f.col) && match(c, q); });
+    else if (S.tab === 'anime') src = C.items.filter(function (c) { return c.set === 'anime' && (!f.c || c.c === f.c) && match(c, q); });
     else if (S.tab === 'portraits') src = R.items.filter(function (r) { return (!f.sec || r.sec === f.sec) && (!f.h || r.h === f.h) && (f.st === '' || f.st == null || String(r.st) === String(f.st)) && match(r, q); });
+    else if (S.tab === 'shisei') src = SH.items.filter(function (p) { return (!f.s || p.s === f.s) && (!f.c || p.c === f.c) && match(p, q); });
+    else if (S.tab === 'characters') src = CH.items.filter(function (i) {
+      return i.set === (f.set || 'hair') && (!f.sub || i.sub === f.sub) && (!f.c || i.cat === f.c) &&
+        (!f.favs || S.favs.indexOf(i.k) >= 0) && match(i, q);
+    });
     else if (S.tab === 'favs') src = S.favs.map(byKey).filter(Boolean).filter(function (x) { return match(x, q); });
     else if (S.tab === 'uploads') src = UP.list.filter(function (x) { return match(x, q); });
     else src = [];
@@ -252,7 +390,7 @@
   function setTab(tab) {
     S.tab = tab;
     document.querySelectorAll('#tabs a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); a.setAttribute('aria-current', a.dataset.tab === tab ? 'page' : null); });
-    var list = tab === 'poses' || tab === 'costumes' || tab === 'portraits' || tab === 'favs';
+    var list = tab === 'poses' || tab === 'costumes' || tab === 'portraits' || tab === 'shisei' || tab === 'characters' || tab === 'anime' || tab === 'favs';
     $('#toolbar').hidden = !list;
     var mt = $('#modeToggle');
     if (mt) { mt.hidden = tab !== 'poses'; mt.setAttribute('aria-checked', fp.mode === 'depth' ? 'true' : 'false'); }
@@ -260,7 +398,8 @@
     if (list) {
       S.f[tab] = S.f[tab] || { q: '' };
       var q = $('#q'); q.value = S.f[tab].q || '';
-      q.placeholder = t(tab === 'poses' ? 'qPoses' : tab === 'costumes' ? 'qCostumes' : tab === 'portraits' ? 'qPortraits' : 'qFavs');
+      var qKey = { poses: 'qPoses', costumes: 'qCostumes', portraits: 'qPortraits', shisei: 'qShisei', characters: 'qCharacters', anime: 'qAnime', favs: 'qFavs' }[tab] || 'qFavs';
+      q.placeholder = t(qKey);
       if (tab === 'favs') $('#filters').innerHTML = ''; else buildFilters();
       renderList(true);
     } else if (tab === 'recipe') renderRecipe();
@@ -270,8 +409,11 @@
   }
   function updateCounts() {
     $('#cnt-poses').textContent = P.items.filter(adultOK).length;
-    $('#cnt-costumes').textContent = C.items.filter(adultOK).length.toLocaleString();
+    $('#cnt-costumes').textContent = C.items.filter(function (c) { return c.set === 'real' && adultOK(c); }).length.toLocaleString();
+    $('#cnt-anime').textContent = C.items.filter(function (c) { return c.set === 'anime' && adultOK(c); }).length.toLocaleString();
     $('#cnt-portraits').textContent = R.items.length.toLocaleString();
+    var shiEl = $('#cnt-shisei'); if (shiEl) shiEl.textContent = SH.items.filter(adultOK).length;
+    var chaEl = $('#cnt-characters'); if (chaEl) chaEl.textContent = CH.items.filter(adultOK).length;
     $('#cnt-favs').textContent = S.favs.length || '';
     var upEl = $('#cnt-uploads'); if (upEl) upEl.textContent = (S.adult ? UP.list.filter(adultOK).length : 0) || '';
     var r = S.recipe, n = (r.pose ? 1 : 0) + (r.costume ? 1 : 0) + (r.portrait ? 1 : 0);
@@ -280,17 +422,32 @@
 
   function renderHead() {
     var el = $('#phead'); if (!el) return;
-    var c = META.counts, visP = P.items.filter(adultOK).length, visC = C.items.filter(adultOK).length;
+    var c = META.counts, visP = P.items.filter(adultOK).length, visC = C.items.filter(function (x) { return x.set === 'real' && adultOK(x); }).length;
+    var visA = C.items.filter(function (x) { return x.set === 'anime' && adultOK(x); }).length;
+    var visS = SH.items.filter(adultOK).length, visH = CH.items.filter(adultOK).length;
+    var visImgs = SH.items.filter(adultOK).reduce(function (n, p) { return n + p.a.length; }, 0);
     var h = '';
     if (S.tab === 'poses') {
       h = '<p class="eyebrow">' + t('posesEyebrow') + '</p><h1>' + t('posesTitle') + '</h1><p class="lead">' + t('posesLead') + '</p>' +
         '<ul class="stats"><li><b>' + visP + '</b><span>' + t('statPoses') + '</span></li><li><b>' + Number(c.poseImagesPerMode).toLocaleString() + '</b><span>' + t('statLine') + '</span></li><li><b>' + Number(c.poseImagesPerMode).toLocaleString() + '</b><span>' + t('statDepth') + '</span></li><li><b>5</b><span>' + t('statAngles') + '</span></li></ul>';
     } else if (S.tab === 'costumes') {
       h = '<p class="eyebrow">' + t('cosEyebrow') + '</p><h1>' + t('cosTitle') + '</h1><p class="lead">' + t('cosLead') + '</p>' +
-        '<ul class="stats"><li><b>' + visC.toLocaleString() + '</b><span>' + t('results').replace('{n}', '').trim() + '</span></li><li><b>' + Number(c.costumesReal).toLocaleString() + '</b><span>' + t('statCosReal') + '</span></li><li><b>' + Number(c.costumesAnime).toLocaleString() + '</b><span>' + t('statCosAnime') + '</span></li></ul>';
+        '<ul class="stats"><li><b>' + visC.toLocaleString() + '</b><span>' + t('statCosReal') + '</span></li></ul>';
+    } else if (S.tab === 'anime') {
+      h = '<p class="eyebrow">' + t('aniEyebrow') + '</p><h1>' + t('aniTitle') + '</h1><p class="lead">' + t('aniLead') + '</p>' +
+        '<ul class="stats"><li><b>' + visA.toLocaleString() + '</b><span>' + t('statAniSets') + '</span></li><li><b>8</b><span>' + t('statAniCats') + '</span></li></ul>';
     } else if (S.tab === 'portraits') {
       h = '<p class="eyebrow">' + t('porEyebrow') + '</p><h1>' + t('porTitle') + '</h1><p class="lead">' + t('porLead') + '</p>' +
         '<ul class="stats"><li><b>' + Number(c.portraits).toLocaleString() + '</b><span>' + t('statPor') + '</span></li><li><b>' + c.portraitStyles + '</b><span>' + t('statStyles') + '</span></li></ul>';
+    } else if (S.tab === 'shisei') {
+      h = '<p class="eyebrow">' + t('shiEyebrow') + '</p><h1>' + t('shiTitle') + '</h1><p class="lead">' + t('shiLead') + '</p>' +
+        '<ul class="stats"><li><b>' + visS + '</b><span>' + t('statShiPoses') + '</span></li><li><b>' + visImgs.toLocaleString() + '</b><span>' + t('statShiImgs') + '</span></li><li><b>CC0</b><span>CC0</span></li></ul>';
+    } else if (S.tab === 'characters') {
+      h = '<p class="eyebrow">' + t('chaEyebrow') + '</p><h1>' + t('chaTitle') + '</h1><p class="lead">' + t('chaLead') + '</p>' +
+        '<ul class="stats"><li><b>' + CH.items.filter(function (i) { return i.set === 'hair' && adultOK(i); }).length + '</b><span>' + t('statChaHair') + '</span></li>' +
+        '<li><b>' + CH.items.filter(function (i) { return i.set === 'outfit' && adultOK(i); }).length + '</b><span>' + t('statChaOutfit') + '</span></li>' +
+        '<li><b>' + CH.items.filter(function (i) { return i.set === 'pose' && adultOK(i); }).length + '</b><span>' + t('statChaPose') + '</span></li>' +
+        '<li><b>' + c.charaVariants + '</b><span>' + t('statChaColor') + '</span></li></ul>';
     } else if (S.tab === 'uploads') {
       h = '<p class="eyebrow">' + t('upEyebrow') + '</p><h1>' + t('upTitle') + '</h1><p class="lead">' + t('upLead') + '</p>';
     }
@@ -305,6 +462,8 @@
     if (!adultOK(it)) { askAdult(function () { openDetail(k, push); }); return; }
     M.k = k;
     if (kind(it) === 'pose') { M.mode = fp.mode === 'depth' ? 'depth' : 'line'; M.angle = it.a.indexOf(fp.angle) >= 0 ? fp.angle : it.a[0]; }
+    else if (kind(it) === 'shi') { M.mode = (S.f.shisei && S.f.shisei.mode) || 'line'; M.angle = it.a[0]; }
+    else if (kind(it) === 'chara') { M.mode = (it.line && S.f.characters && S.f.characters.line) ? 'line' : 'draw'; }
     renderDetail();
     if (!modal.open) modal.showModal();
     if (push !== false) history.replaceState(null, '', '#' + S.tab + '/' + encodeURIComponent(k));
@@ -335,7 +494,7 @@
       return '<div class="mh"><div><h2 id="mTitle">' + esc(ttl) + '</h2><div class="alt">' + esc(alt) + '</div><div class="id">' + chips + '</div></div>' +
         '<button class="btn ghost sm x" type="button" data-act="close" aria-label="close">✕</button></div>' +
         '<div class="row" style="margin-top:12px"><button class="btn sm" type="button" data-act="fav">' + (fav ? '★ ' + t('unfav') : '☆ ' + t('fav')) + '</button>' +
-        '<button class="btn sm' + (inR ? ' ok' : '') + '" type="button" data-act="recipe">' + (inR ? t('inRecipe') : '+ ' + t('addRecipe')) + '</button></div>';
+        (k === 'shi' || k === 'chara' ? '' : '<button class="btn sm' + (inR ? ' ok' : '') + '" type="button" data-act="recipe">' + (inR ? t('inRecipe') : '+ ' + t('addRecipe')) + '</button>') + '</div>';
     };
     var tag = function (s, cls) { return '<span class="chip' + (cls ? ' ' + cls : '') + '" style="cursor:default">' + esc(s) + '</span>'; };
     if (k === 'pose') {
@@ -359,6 +518,39 @@
       if (it.t.length) h += '<div class="msec"><div class="row">' + it.t.map(function (x) { return tag(x); }).join('') + '</div></div>';
       h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, it.set === 'anime' ? 'COSTUME-ANIME-DB · ギア' : 'COSTUME-DB-01 · ギア', PR.links.costume(it.set, it.id), '', 'cos', it) + '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
       h += '<div class="msec"><h3>Prompt</h3>' + promptBlock(PR.costume(it)) + '</div><div class="keys">↑ ↓ · Esc</div>';
+    } else if (k === 'shi') {
+      var ss = shiSeries[it.s];
+      h += head(S.lang === 'en' ? it.en : it.zh, (S.lang === 'en' ? it.zh : it.en) + (it.ja ? ' · ' + it.ja : ''),
+        '<span>' + esc(it.no) + '</span>' + tag(L(ss)) + tag(it.c) + tag('CC0 1.0') + (it.adult ? '<span class="b18" style="position:static">18+</span>' : ''));
+      h += '<div class="msec"><h3>' + t('angle') + '</h3><div class="row"><div class="seg">' + SH.angles.map(function (a) {
+        var miss = it.a.indexOf(a.key) < 0;
+        return '<button type="button" data-act="ang" data-v="' + a.key + '" class="' + (M.angle === a.key ? 'on' : '') + '"' + (miss ? ' disabled title="' + esc(t('missingAngle')) + '" style="opacity:.35;cursor:not-allowed"' : '') + '>' + esc(L(a)) + '</button>'; }).join('') +
+        '</div><div class="seg" style="margin-left:auto">' + ['line', 'clay', 'depth'].map(function (m) {
+        return '<button type="button" data-act="mode" data-v="' + m + '" class="' + (M.mode === m ? 'on' : '') + '">' + t(m === 'line' ? 'modeLine' : m === 'clay' ? 'modeClay' : 'modeDepth') + '</button>'; }).join('') + '</div></div></div>';
+      var sl = PR.links.shisei(M.mode, it, M.angle);
+      h += '<div class="msec"><h3>' + t('openSrc') + ' · ' + esc(L(shiAng[M.angle] || {})) + '</h3>' +
+        srcBox(true, 'Shisei · ' + t(M.mode === 'clay' ? 'modeClay' : M.mode === 'depth' ? 'modeDepth' : 'modeLine'), sl, '', M.mode === 'depth' ? 'depth shi' : 'line shi', it) +
+        '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
+      h += '<div class="msec"><h3>Prompt · ' + t(M.mode === 'clay' ? 'modeClay' : M.mode === 'depth' ? 'modeDepth' : 'modeLine') + ' · ' + esc(L(shiAng[M.angle] || {})) + '</h3>' + promptBlock(itemPrompt(it, M.mode, M.angle)) + '</div>';
+      if (it.desc) h += '<div class="tip">' + esc(it.desc) + '</div>';
+    } else if (k === 'chara') {
+      var col = charaColorOf(it);
+      h += head(title(it), (S.lang === 'en' ? it.zh : it.tags) + (it.jp ? ' · ' + it.jp : ''),
+        '<span>' + esc(charaImgId(it)) + '</span>' + tag(it.catZh || it.cat) + (it.adult ? '<span class="b18" style="position:static">18+</span>' : ''));
+      if (it.colors && it.colors.length) {
+        h += '<div class="msec"><h3>' + t('previewColor') + '</h3><div class="dots">' + it.colors.map(function (c) {
+          var hex = (CH.colors[c] && CH.colors[c].hex) || '#ccc';
+          return '<button type="button" class="dot' + (c === col ? ' on' : '') + '" data-act="col" data-v="' + c + '" title="' + esc((CH.colors[c] && (S.lang === 'en' ? CH.colors[c].en : CH.colors[c].zh)) || c) + '" style="background:' + hex + '"></button>';
+        }).join('') + '</div></div>';
+      }
+      if (it.line) {
+        h += '<div class="msec"><div class="seg">' +
+          '<button type="button" data-act="mode" data-v="draw" class="' + (M.mode !== 'line' ? 'on' : '') + '">' + t('charaDraw') + '</button>' +
+          '<button type="button" data-act="mode" data-v="line" class="' + (M.mode === 'line' ? 'on' : '') + '">' + t('charaLine') + '</button></div></div>';
+      }
+      h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, 'キャラ組み立てDB · たき AI', itemLink(it, M.mode === 'line' ? 'line' : 'draw'), '', 'chara', it) +
+        '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
+      h += '<div class="msec"><h3>Prompt</h3>' + promptBlock(itemPrompt(it, M.mode === 'line' ? 'line' : 'draw')) + '</div>';
     } else if (k === 'up') {
       h += head(title(it), subtitle(it), '<span>' + esc(it.id) + '</span>' + tag(it.type || '') + (it.adult ? '<span class="b18" style="position:static">18+</span>' : ''));
       h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, title(it), itemLink(it), t('upLead'), 'up', it) + '</div>';
@@ -396,12 +588,12 @@
   }
   function inRecipe(it) {
     var r = S.recipe, k = kind(it);
-    if (k === 'up') return false;
+    if (k === 'up' || k === 'shi' || k === 'chara') return false;
     return k === 'pose' ? r.pose && r.pose.id === it.id : k === 'cos' ? r.costume && r.costume.set + ':' + r.costume.id === it.set + ':' + it.id : r.portrait === it.id;
   }
   function addRecipe(it) {
     var k = kind(it);
-    if (k === 'up') return;
+    if (k === 'up' || k === 'shi' || k === 'chara') return;
     if (k === 'pose') S.recipe.pose = { id: it.id, mode: M.k === it.k ? M.mode : (fp.mode === 'depth' ? 'depth' : 'line'), angle: M.k === it.k ? M.angle : (it.a.indexOf(fp.angle) >= 0 ? fp.angle : it.a[0]) };
     else if (k === 'cos') S.recipe.costume = { set: it.set, id: it.id };
     else S.recipe.portrait = it.id;
@@ -449,7 +641,9 @@
       ['POSE-DB-02（灰模/深度）', 'https://ai-pose-depth-gallery.pages.dev/', 'ギア @giaaibusi', zh ? '与线稿同一批 ID 一一对应，1,439 张；越白越近' : 'Same IDs as line art, 1,439 depth maps; whiter = closer'],
       ['COSTUME-DB-01（写实衣装）', 'https://ai-costume-gallery.pages.dev/', 'ギア @giaaibusi', '1,407'],
       ['COSTUME-ANIME-DB（二次元衣装）', 'https://ai-costume-anime-gallery.pages.dev/', 'ギア @giaaibusi', '1,320'],
-      ['AIモデル顔データベース（人像）', 'https://ai-portrait-gallery.pages.dev/', 'あぎ @agi_aibusi', zh ? '1,499（CC0 1.0；作者请求勿再分发图片本身）' : '1,499 (CC0 1.0; the author asks not to redistribute the images)']
+      ['AIモデル顔データベース（人像）', 'https://ai-portrait-gallery.pages.dev/', 'あぎ @agi_aibusi', zh ? '1,499（CC0 1.0；作者请求勿再分发图片本身）' : '1,499 (CC0 1.0; the author asks not to redistribute the images)'],
+      ['Shisei CC0 姿势线稿', 'https://shisei.indaloop.app/', 'wquguru', zh ? '280 个姿势、1,212 张线稿/白模/深度图；CC0 1.0，可商用、可再分发' : '280 poses, 1,212 line/clay/depth views; CC0 1.0, commercial use and redistribution allowed'],
+      ['キャラ組み立てDB（二次元角色）', 'https://charadb-2fi.pages.dev/', 'たき AI @taki_auto', zh ? '843 条底图 + 184 个发色变体；允许作品商用，禁止再分发原图及加工图，禁止用于真实人物或未成年人' : '843 base + 184 hair-color variants; commercial works OK; no redistributing original or edited images; no real people or minors']
     ];
     var repos = [
       ['HRuiCcc/RuiC-PoseAtlas', 'MIT', zh ? '姿势中/英/日名与分类英文名、衣装颜色/类别、人像分区与发长' : 'Pose names (zh/en/ja), category EN names, outfit color/group, portrait sections & hair'],
@@ -463,8 +657,9 @@
       '本站是一个<strong>文字索引 + prompt 工具</strong>：只收录姿势名、分类、视角、衣装关键词、发型等元数据，并据此生成可直接复制的生图 prompt。本站不托管、不转存原图。列表按滚动从原站加载官方缩略图，打开详情时再加载这一张原图预览。禁止批量下载或自动抓取。' :
       'This site is a <strong>text index + prompt tool</strong>: it only stores metadata (pose names, categories, angles, outfit keywords, hairstyles) and builds copy-ready prompts from it. Images are not re-hosted. The list lazily loads official thumbnails from the original sites; opening an item loads that one official preview. Bulk download and automated scraping are not allowed.') + '</p>' +
       '<div class="stats">' + stat(c.poses, zh ? '姿势组' : 'poses') + stat(c.angles, zh ? '视角' : 'angles') + stat(c.poseImagesPerMode * 2, zh ? '线稿+深度 图位' : 'line + depth images') +
-      stat(c.costumesReal + c.costumesAnime, zh ? '衣装（写实+二次元）' : 'outfits') + stat(c.portraits, zh ? '人像' : 'portraits') +
-      stat(c.poseImagesPerMode * 2 * 2 + (c.costumesReal + c.costumesAnime + c.portraits) * 2, zh ? '可复制 prompt（中+英）' : 'copyable prompts (zh+en)') + '</div></div>';
+      stat(c.costumesReal, zh ? '写实服装' : 'real outfits') + stat(c.costumesAnime, zh ? '二次元服装' : 'anime outfits') + stat(c.portraits, zh ? '人像' : 'portraits') +
+      stat(c.shiseiPoses, zh ? 'CC0 线稿姿势' : 'CC0 poses') + stat(c.charaBase + c.charaVariants, zh ? '角色设定（含发色）' : 'character looks') +
+      stat(c.poseImagesPerMode * 2 * 2 + (c.costumesReal + c.costumesAnime + c.portraits) * 2 + c.shiseiImages * 2 + (c.charaBase + c.charaVariants) * 2, zh ? '可复制 prompt（中+英）' : 'copyable prompts (zh+en)') + '</div></div>';
     h += '<div class="panel"><h3 style="margin-top:0">' + (zh ? '原站（图片版权方）' : 'Original sites (image rights holders)') + '</h3><table><tr><th>' + (zh ? '站点' : 'Site') + '</th><th>' + (zh ? '作者' : 'Author') + '</th><th>' + (zh ? '收录' : 'Coverage') + '</th></tr>' +
       src.map(function (r) { return '<tr><td><a href="' + r[1] + '" target="_blank" rel="noopener">' + r[0] + '</a></td><td>' + r[2] + '</td><td>' + r[3] + '</td></tr>'; }).join('') + '</table>' +
       '<h3>' + (zh ? '原站利用规约（摘要）' : 'Original terms (summary)') + '</h3><ul>' + (zh ? [
@@ -472,13 +667,17 @@
         '<b>禁止</b>对图片数据本身（含原尺寸与加工后）<b>再分发、转载、转售</b>。',
         '<b>禁止批量下载</b>（含用工具自动抓取），以及对所取得图片的再分发、转载、销售；生成时逐张参考使用不受影响。（该条见于姿势线稿、深度、衣装各站；深度站在页首再次强调）',
         '不得用于表现真实人物或未成年人，或违反公序良俗的用途。图片为人台/AI 生成，非真实人物。',
-        '人像库（あぎ）：CC0 1.0，可商用与编辑；作者请求勿再分发、转载图片本身；不得用于冒充真实人物。'
+        '人像库（あぎ）：CC0 1.0，可商用与编辑；作者请求勿再分发、转载图片本身；不得用于冒充真实人物。',
+        'Shisei 线稿（wquguru）：CC0 1.0，图片可商用、可再分发；本站仍只热链接官方缩略图，不把原图打进仓库。',
+        '角色库（たき AI）：允许用于作品制作与商用；<b>禁止再分发原图及加工图</b>；不得用于真实人物或未成年人。'
       ] : [
         'Free to use; <b>allowed as references for your own works (incl. commercial use and editing)</b>; credit optional.',
         '<b>No redistribution, reposting or resale</b> of the image data itself (original or edited).',
         '<b>No bulk downloading</b> (incl. automated scraping) and no redistribution or sale of images so obtained; using them one at a time for generation is fine (stated on the line-art, depth and costume sites).',
         'Do not use to depict real people or minors, or for anything offensive. Figures are mannequins / AI-generated.',
-        'Portrait library (あぎ): CC0 1.0, commercial use and editing allowed; the author asks not to redistribute the images; no impersonation of real people.'
+        'Portrait library (あぎ): CC0 1.0, commercial use and editing allowed; the author asks not to redistribute the images; no impersonation of real people.',
+        'Shisei (wquguru): CC0 1.0; images may be used commercially and redistributed. This site still only hotlinks official thumbnails and does not vendor the originals.',
+        'Character library (たき AI): commercial works allowed; <b>do not redistribute original or edited images</b>; do not use for real people or minors.'
       ]).map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul></div>';
     h += '<div class="panel"><h3 style="margin-top:0">' + (zh ? '元数据来源仓库' : 'Metadata repositories') + '</h3><table><tr><th>Repo</th><th>License</th><th>' + (zh ? '用途' : 'Used for') + '</th></tr>' +
       repos.map(function (r) { return '<tr><td><a href="https://github.com/' + r[0] + '" target="_blank" rel="noopener">' + r[0] + '</a></td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('') + '</table>' +
@@ -495,11 +694,11 @@
       '<h3>' + (zh ? '已知缺口' : 'Known gaps') + '</h3><ul>' + (zh ? [
         '原站本身缺 1 张：' + META.missing.join(', ') + '（线稿与深度均缺）。',
         '人像英文发型名为本站翻译（中文名来自 anhao/ai-pose-gallery-zh）。',
-        '未收录他人作者的扩展库：Shisei（wquguru，CC0，57 套历史服饰）、CharaDB（たき，440 套二次元服装）。'
+        '部分双人 / 性感系列姿势在 18+ 关闭时隐藏。角色库发色变体按官方默认棕色图加色点切换。'
       ] : [
         'Missing on the source itself: ' + META.missing.join(', ') + ' (both line art and depth).',
         'English hairstyle names are our translations (Chinese from anhao/ai-pose-gallery-zh).',
-        'Not included (other authors): Shisei (wquguru, CC0, 57 historical outfits), CharaDB (たき, 440 anime outfits).'
+        'Some pair / sexy series poses stay hidden until 18+ is on. Hair-color variants switch from the official brown default via the color dots.'
       ]).map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul><p style="color:var(--tx3);font-size:12px">' + (zh ? '数据生成日期：' : 'Data built: ') + META.built + '</p></div></div>';
     $('#view').innerHTML = h;
   }
@@ -731,9 +930,11 @@
     }
     var b = e.target.closest('[data-f]'); if (!b || b.tagName === 'SELECT') return;
     var f = S.f[S.tab], k = b.dataset.f, v = b.dataset.v;
-    if (k === 'mode' || k === 'angle' || k === 'set') f[k] = v; else f[k] = f[k] === v ? '' : v;
-    if (k === 's') f.c = '';
-    if (k === 'set') f.c = '';
+    if (k === 'mode' || k === 'angle' || k === 'set' || k === 'color' || k === 'line') f[k] = v;
+    else if (k === 'favs') f[k] = f[k] ? '' : v;
+    else f[k] = f[k] === v ? '' : v;
+    if (k === 's' || k === 'set') { f.c = ''; f.sub = ''; }
+    if (k === 'color') cardColors = {};
     saveF(); buildFilters();
     var mt = $('#modeToggle'); if (mt && k === 'mode') mt.setAttribute('aria-checked', fp.mode === 'depth' ? 'true' : 'false');
     renderList(true);
@@ -759,10 +960,27 @@
       if (act === 'ang' && cardEl) {
         var itA = byKey(cardEl.dataset.k), ang = a.dataset.v, vis = cardEl.querySelector('.vis'), img = vis && vis.querySelector('.thumb');
         if (itA && img && !vis.classList.contains('cmp')) {
-          var md = vis.classList.contains('depth') ? 'depth' : 'line';
-          img.src = PR.links.pose(md, itA.id, ang).thumb;
+          if (kind(itA) === 'shi') {
+            var mdS = vis.classList.contains('depth') ? 'depth' : ((S.f.shisei && S.f.shisei.mode) || 'line');
+            img.src = PR.links.shisei(mdS, itA, ang).thumb;
+          } else {
+            var md = vis.classList.contains('depth') ? 'depth' : 'line';
+            img.src = PR.links.pose(md, itA.id, ang).thumb;
+          }
         }
         cardEl.querySelectorAll('.strip button').forEach(function (x) { x.classList.toggle('on', x === a); });
+        return;
+      }
+      if (act === 'col' && cardEl) {
+        var itC = byKey(cardEl.dataset.k);
+        if (itC) {
+          cardColors[itC.id] = a.dataset.v;
+          var imgC = cardEl.querySelector('.thumb'), h3 = cardEl.querySelector('h3'), badge = cardEl.querySelector('.badge');
+          if (imgC) imgC.src = PR.links.character({ id: charaImgId(itC) }, { line: !!(S.f.characters && S.f.characters.line && itC.line) }).thumb;
+          if (h3) h3.textContent = title(itC);
+          if (badge) badge.textContent = charaImgId(itC);
+          cardEl.querySelectorAll('.dot').forEach(function (x) { x.classList.toggle('on', x === a); });
+        }
         return;
       }
       if (act === 'udel') { upDel(a.dataset.id).then(function () { toast(t('upDelOk')); renderUploads(); updateCounts(); }); return; }
@@ -783,7 +1001,8 @@
     if (act === 'close') closeDetail();
     else if (act === 'ang') { M.angle = a.dataset.v; renderDetail(); }
     else if (act === 'mode') { M.mode = a.dataset.v; renderDetail(); }
-    else if (act === 'mcopy') copy(kind(it) === 'pose' ? posePrompt(it, M.mode, M.angle)[a.dataset.lang] : itemPrompt(it)[a.dataset.lang], a);
+    else if (act === 'mcopy') copy(itemPrompt(it, M.mode, M.angle)[a.dataset.lang], a);
+    else if (act === 'col') { cardColors[it.id] = a.dataset.v; renderDetail(); }
     else if (act === 'home') openHome(a);
     else if (act === 'fav') { toggleFav(it); renderDetail(); if (S.tab === 'favs') renderList(true); }
     else if (act === 'recipe') { addRecipe(it); renderDetail(); toast(t('inRecipe')); if (S.tab === 'recipe') renderRecipe(); }
@@ -795,7 +1014,7 @@
   } else window.addEventListener('scroll', function () { if (innerHeight + scrollY > document.body.offsetHeight - 900 && S.shown < S.list.length) renderList(false); });
 
   /* routing: #tab 或 #tab/<key> */
-  var TABS = ['poses', 'costumes', 'portraits', 'recipe', 'favs', 'uploads', 'about'];
+  var TABS = ['poses', 'costumes', 'portraits', 'shisei', 'characters', 'anime', 'recipe', 'favs', 'uploads', 'about'];
   function route() {
     var h = decodeURIComponent(location.hash.slice(1)), i = h.indexOf('/'), tab = i < 0 ? h : h.slice(0, i), key = i < 0 ? '' : h.slice(i + 1);
     if (TABS.indexOf(tab) < 0) tab = 'poses';

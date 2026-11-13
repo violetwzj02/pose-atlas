@@ -7,7 +7,7 @@
 <meta name="description" content="288 组角色姿势（线稿 / 深度图）、2,727 套衣装、1,499 张人像的中英文生图 prompt 索引。全年龄与 18+ 两种模式可切换；列表显示原站官方缩略图，详情加载原图预览。本站不转存原图。">
 <meta name="theme-color" content="#ffffff" id="themeColor">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev https://shisei.indaloop.app https://charadb-2fi.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
@@ -20,9 +20,12 @@
       <span><b>PoseAtlas</b><small data-i="brandSub">角色姿势资产库</small></span>
     </a>
     <nav class="tabs" id="tabs" aria-label="主导航">
-      <a href="#poses" data-tab="poses"><span data-i="tabPoses">姿势</span><em id="cnt-poses"></em></a>
-      <a href="#costumes" data-tab="costumes"><span data-i="tabCostumes">衣装</span><em id="cnt-costumes"></em></a>
       <a href="#portraits" data-tab="portraits"><span data-i="tabPortraits">人像</span><em id="cnt-portraits"></em></a>
+      <a href="#costumes" data-tab="costumes"><span data-i="tabCostumes">服装</span><em id="cnt-costumes"></em></a>
+      <a href="#poses" data-tab="poses"><span data-i="tabPoses">姿势</span><em id="cnt-poses"></em></a>
+      <a href="#shisei" data-tab="shisei"><span data-i="tabShisei">CC0 线稿</span><em id="cnt-shisei"></em></a>
+      <a href="#characters" data-tab="characters"><span data-i="tabCharacters">角色</span><em id="cnt-characters"></em></a>
+      <a href="#anime" data-tab="anime"><span data-i="tabAnime">二次元服装</span><em id="cnt-anime"></em></a>
       <a href="#recipe" data-tab="recipe"><span data-i="tabRecipe">配方</span><em id="cnt-recipe"></em></a>
       <a href="#favs" data-tab="favs"><span data-i="tabFavs">收藏</span><em id="cnt-favs"></em></a>
       <a href="#uploads" data-tab="uploads"><span data-i="tabUploads">上传</span><em id="cnt-uploads"></em></a>
@@ -88,6 +91,8 @@
 <script src="data/poses.js"></script>
 <script src="data/costumes.js"></script>
 <script src="data/portraits.js"></script>
+<script src="data/shisei.js"></script>
+<script src="data/characters.js"></script>
 <script src="assets/js/prompts.js"></script>
 <script src="assets/js/i18n.js"></script>
 <script src="assets/js/app.js"></script>

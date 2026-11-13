@@ -1,7 +1,7 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: blob: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev https://shisei.indaloop.app https://charadb-2fi.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; frame-ancestors 'none'
 
 /data/*
   Cache-Control: public, max-age=3600
