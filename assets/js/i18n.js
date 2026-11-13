@@ -12,7 +12,7 @@ window.PA_I18N = {
     results: '{n} 条结果', resultsOf: '{n} / {t} 条', hidden18: '（{n} 条 18+ 已隐藏）',
     copyZh: '复制中文', copyEn: '复制 EN', copied: '已复制 ✓', copiedToast: '已复制到剪贴板', copyFail: '复制失败，请手动选择文本',
     openSrc: '原站预览', srcShort: '原站', openImg: '原站单图 ↗', openHome: '打开原站并复制 ID', idCopied: '已复制「{id}」。原站是单页图库，在其搜索框粘贴即可定位。',
-    noImgNote: '预览图由原站即时加载，本站不转存；列表不展示缩略图。请每次只看一张，勿批量下载。',
+    noImgNote: '列表缩略图与详情预览均由原站即时加载，本站不转存。请勿批量下载。',
     previewFrom: '由原站加载，本站不转存', previewFail: '原站预览未能加载，请用「原站单图」打开。',
     promptZh: '中文 prompt', promptEn: 'English prompt', addRecipe: '加入配方', inRecipe: '已在配方 ✓', fav: '收藏', unfav: '已收藏',
     lineSite: '线稿 · POSE-DB-01', depthSite: '灰模/深度 · POSE-DB-02', depthNote: '深度图：越白越靠近镜头', missingAngle: '原站缺此视角',
@@ -20,7 +20,7 @@ window.PA_I18N = {
     recipeTitle: '组合配方', recipeIntro: '从姿势 / 衣装 / 人像各选一项（可只选部分），自动拼成一条多参考图 prompt。参考图请在原站逐张查看后按图号顺序上传给你的生图工具。',
     slotPortrait: '图 · 人像（脸与发型）', slotCostume: '图 · 衣装', slotPose: '图 · 姿势', pick: '去挑选', remove: '移除', stylePreset: '画风预设', clear: '清空配方', refs: '参考图（按顺序）', recipeEmpty: '配方还是空的：在任意卡片或详情里点「加入配方」。',
     favEmpty: '还没有收藏。在详情弹层点 ☆ 收藏。', more: '更多', poseCount: '{n} 组', angles: '{n} 视角',
-    footSrc: '图片与姿势数据原作者：ギア（@giaaibusi）· 人像：あぎ（@agi_aibusi）', footRule: '原站允许将图片作为参考用于创作（含商用、编辑）；禁止对图片本身（含原尺寸与加工后）再分发、转载、转售；禁止批量下载（含工具自动抓取）。本站不托管、不转存原图；仅在打开某一项详情时从原站加载这一张预览，列表不铺开缩略图。',
+    footSrc: '图片与姿势数据原作者：ギア（@giaaibusi）· 人像：あぎ（@agi_aibusi）', footRule: '原站允许将图片作为参考用于创作（含商用、编辑）；禁止对图片本身（含原尺寸与加工后）再分发、转载、转售；禁止批量下载（含工具自动抓取）。本站不托管、不转存原图；列表只按滚动加载原站官方缩略图，详情再加载这一张原图预览。',
     footCode: '站点代码 MIT；图片版权归原作者，不随 MIT 授权。', aboutLink: '完整来源与授权 →'
   },
   en: {
@@ -35,7 +35,7 @@ window.PA_I18N = {
     results: '{n} results', resultsOf: '{n} / {t}', hidden18: ' ({n} 18+ hidden)',
     copyZh: 'Copy ZH', copyEn: 'Copy EN', copied: 'Copied ✓', copiedToast: 'Copied to clipboard', copyFail: 'Copy failed — select the text manually',
     openSrc: 'Official preview', srcShort: 'Source', openImg: 'Original image ↗', openHome: 'Open site & copy ID', idCopied: 'Copied "{id}". The original is a single-page gallery — paste it into its search box.',
-    noImgNote: 'Previews load directly from the original site; we do not re-host images. The list has no thumbnails. Do not bulk-download.',
+    noImgNote: 'List thumbnails and detail previews load from the original sites; we do not re-host images. Do not bulk-download.',
     previewFrom: 'Loaded from the original site; not re-hosted here', previewFail: 'The official preview could not be loaded. Use “Original image” instead.',
     promptZh: 'Chinese prompt', promptEn: 'English prompt', addRecipe: 'Add to recipe', inRecipe: 'In recipe ✓', fav: 'Save', unfav: 'Saved',
     lineSite: 'Line art · POSE-DB-01', depthSite: 'Depth · POSE-DB-02', depthNote: 'Depth map: whiter = closer', missingAngle: 'Angle missing on source',
@@ -43,7 +43,7 @@ window.PA_I18N = {
     recipeTitle: 'Recipe', recipeIntro: 'Pick a pose, an outfit and a portrait (any subset) to build one multi-reference prompt. Open each reference on its original site and upload them to your tool in image order.',
     slotPortrait: 'Image · Portrait (face & hair)', slotCostume: 'Image · Outfit', slotPose: 'Image · Pose', pick: 'Browse', remove: 'Remove', stylePreset: 'Style preset', clear: 'Clear recipe', refs: 'References (in order)', recipeEmpty: 'The recipe is empty — use "Add to recipe" on any card or detail view.',
     favEmpty: 'Nothing saved yet. Use ☆ in a detail view.', more: 'More', poseCount: '{n} poses', angles: '{n} angles',
-    footSrc: 'Images & pose data by ギア (@giaaibusi) · Portraits by あぎ (@agi_aibusi)', footRule: 'The original sites allow using the images as references for your own work (incl. commercial use and editing). Redistributing, reposting or reselling the images themselves (original or edited) is prohibited, as is bulk downloading (incl. automated scraping). This site does not re-host images; when you open one item, its preview loads from the original site, and the list has no thumbnail grid.',
+    footSrc: 'Images & pose data by ギア (@giaaibusi) · Portraits by あぎ (@agi_aibusi)', footRule: 'The original sites allow using the images as references for your own work (incl. commercial use and editing). Redistributing, reposting or reselling the images themselves (original or edited) is prohibited, as is bulk downloading (incl. automated scraping). This site does not re-host images; the list lazily loads official thumbnails, and the detail view loads one official preview.',
     footCode: 'Site code: MIT. Image copyright stays with the original authors and is not covered by MIT.', aboutLink: 'Full sources & license →'
   }
 };

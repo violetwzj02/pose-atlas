@@ -120,18 +120,24 @@
     if (k === 'cos') return S.lang === 'en' ? (it.zh || '') : it.kw;
     var st = R.styles[it.st]; return st.ja || '—';
   }
+  function thumbImg(src, alt, cls) {
+    return '<img class="thumb' + (cls ? ' ' + cls : '') + '" alt="' + esc(alt) + '" src="' + esc(src) + '" width="300" height="400" loading="lazy" decoding="async" referrerpolicy="no-referrer">';
+  }
   function cardVis(it) {
-    var k = kind(it), b = it.adult ? '<span class="b18">18+</span>' : '';
+    var k = kind(it), b = it.adult ? '<span class="b18">18+</span>' : '', ttl = title(it);
     if (k === 'pose') {
-      var m = fp.mode, cls = m === 'depth' ? 'depth' : m === 'compare' ? 'cmp' : 'line';
+      var m = fp.mode, ang = it.a.indexOf(fp.angle) >= 0 ? fp.angle : it.a[0];
+      var cls = m === 'depth' ? 'depth' : m === 'compare' ? 'cmp' : 'line';
       var dots = P.angles.map(function (a) { return '<i class="' + (it.a.indexOf(a.key) < 0 ? 'x' : a.key === fp.angle ? 'cur' : '') + '" title="' + esc(L(a)) + '"></i>'; }).join('');
-      return '<div class="vis ' + cls + '">' + figFor(it) + '<span class="tag">' + esc(L(seriesBy[it.s].short)) + '</span>' + b + '<span class="no">' + esc(it.no) + '</span><span class="angs">' + dots + '</span></div>';
+      var imgs = m === 'compare'
+        ? thumbImg(PR.links.pose('line', it.id, ang).thumb, ttl, 'half') + thumbImg(PR.links.pose('depth', it.id, ang).thumb, ttl, 'half')
+        : thumbImg(PR.links.pose(m === 'depth' ? 'depth' : 'line', it.id, ang).thumb, ttl);
+      return '<div class="vis ' + cls + '">' + imgs + '<span class="tag">' + esc(L(seriesBy[it.s].short)) + '</span>' + b + '<span class="no">' + esc(it.no) + '</span><span class="angs">' + dots + '</span></div>';
     }
     if (k === 'cos') {
-      var col = COLORS[it.col] || '#555';
-      return '<div class="vis cos"><div class="swatch" style="background:radial-gradient(120% 90% at 20% 10%,' + col + ' 0,' + col + 'cc 35%,#0d0d12 100%)"></div><span class="tag">' + esc(L(ccatBy[it.c])) + (it.set === 'anime' ? ' · 2D' : '') + '</span>' + b + '<div class="kw">' + esc(it.kw) + '</div><span class="no" style="font-size:16px">' + esc(it.id) + '</span></div>';
+      return '<div class="vis cos">' + thumbImg(PR.links.costume(it.set, it.id).thumb, ttl) + '<span class="tag">' + esc(L(ccatBy[it.c])) + (it.set === 'anime' ? ' · 2D' : '') + '</span>' + b + '<span class="no">' + esc(it.id) + '</span></div>';
     }
-    return '<div class="vis por">' + FIG.face + '<span class="tag">' + esc(L(secBy[it.sec])) + '</span><span class="no" style="font-size:13px">' + esc(it.id) + '</span></div>';
+    return '<div class="vis por">' + thumbImg(PR.links.portrait(it).thumb, ttl) + '<span class="tag">' + esc(L(secBy[it.sec])) + '</span>' + b + '<span class="no">' + esc(it.id) + '</span></div>';
   }
   function cardMeta(it) {
     var k = kind(it), m = [];
@@ -397,8 +403,8 @@
       ['mugicha-AI/ComfyUI-PoseAtlas', '—', zh ? '参考（未取数据）' : 'Reference (no data used)']
     ];
     var h = '<div class="about"><div class="panel"><h2>' + (zh ? '来源与授权' : 'Sources & license') + '</h2><p class="lead">' + (zh ?
-      '本站是一个<strong>文字索引 + prompt 工具</strong>：只收录姿势名、分类、视角、衣装关键词、发型等元数据，并据此生成可直接复制的生图 prompt。本站不托管、不转存原图，也不在列表中铺开缩略图；仅在你打开某一项详情时，从原站地址加载这一张预览。禁止批量下载或自动抓取。' :
-      'This site is a <strong>text index + prompt tool</strong>: it only stores metadata (pose names, categories, angles, outfit keywords, hairstyles) and builds copy-ready prompts from it. Images are not re-hosted or shown as a thumbnail grid; when you open one item, its preview loads from the original site. Bulk download and automated scraping are not allowed.') + '</p>' +
+      '本站是一个<strong>文字索引 + prompt 工具</strong>：只收录姿势名、分类、视角、衣装关键词、发型等元数据，并据此生成可直接复制的生图 prompt。本站不托管、不转存原图。列表按滚动从原站加载官方缩略图，打开详情时再加载这一张原图预览。禁止批量下载或自动抓取。' :
+      'This site is a <strong>text index + prompt tool</strong>: it only stores metadata (pose names, categories, angles, outfit keywords, hairstyles) and builds copy-ready prompts from it. Images are not re-hosted. The list lazily loads official thumbnails from the original sites; opening an item loads that one official preview. Bulk download and automated scraping are not allowed.') + '</p>' +
       '<div class="stats">' + stat(c.poses, zh ? '姿势组' : 'poses') + stat(c.angles, zh ? '视角' : 'angles') + stat(c.poseImagesPerMode * 2, zh ? '线稿+深度 图位' : 'line + depth images') +
       stat(c.costumesReal + c.costumesAnime, zh ? '衣装（写实+二次元）' : 'outfits') + stat(c.portraits, zh ? '人像' : 'portraits') +
       stat(c.poseImagesPerMode * 2 * 2 + (c.costumesReal + c.costumesAnime + c.portraits) * 2, zh ? '可复制 prompt（中+英）' : 'copyable prompts (zh+en)') + '</div></div>';
@@ -491,6 +497,13 @@
   $('#filters').addEventListener('change', function (e) { if (e.target.dataset.f) { S.f[S.tab][e.target.dataset.f] = e.target.value; saveF(); renderList(true); } });
 
   function openHome(btn) { var id = btn.dataset.id; window.open(btn.dataset.home, '_blank', 'noopener'); copy(id, null, fmt(t('idCopied'), { id: id })); }
+  $('#view').addEventListener('error', function (e) {
+    var el = e.target;
+    if (!el || !el.classList || !el.classList.contains('thumb')) return;
+    el.classList.add('is-fail');
+    var box = el.closest('.vis');
+    if (box) box.classList.add('is-fail');
+  }, true);
   $('#view').addEventListener('click', function (e) {
     var a = e.target.closest('[data-act]');
     var cardEl = e.target.closest('.card');

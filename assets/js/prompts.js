@@ -18,15 +18,15 @@
   var links = {
     pose: function (mode, poseId, angle) {
       var s = SITES[mode === 'depth' ? 'depth' : 'line'];
-      return { home: s.home, image: s.home + 'img/' + poseId + '_' + angle + '.png', search: poseId };
+      return { home: s.home, image: s.home + 'img/' + poseId + '_' + angle + '.png', thumb: s.home + 'thumbs/' + poseId + '_' + angle + '.jpg', search: poseId };
     },
     costume: function (set, id) {
       var s = SITES[set === 'anime' ? 'anime' : 'real'];
-      return { home: s.home, image: s.home + 'png/' + id + '.png', search: id };
+      return { home: s.home, image: s.home + 'png/' + id + '.png', thumb: s.home + 'thumbs/' + id + '.webp', search: id };
     },
     portrait: function (item) {
       var h = '#' + (item.sec === 'styling' ? 'sec=styling&' : '') + 'hair=' + encodeURIComponent(HAIR_JA[item.h]);
-      return { home: SITES.portrait.home + h, image: SITES.portrait.home + 'img/full/' + item.id + '.png', search: item.id };
+      return { home: SITES.portrait.home + h, image: SITES.portrait.home + 'img/full/' + item.id + '.png', thumb: SITES.portrait.home + 'img/thumb/' + item.id + '.webp', search: item.id };
     }
   };
 
