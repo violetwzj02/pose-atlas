@@ -262,7 +262,12 @@
       '<div class="tip">' + esc(L(p.tip)) + '</div>';
   }
   function srcBox(on, ttl, link, note, visCls, it) {
-    return '<div class="src' + (on ? ' on' : '') + '"><h4>' + ttl + '</h4>' + (visCls ? '<div class="vis ' + visCls + '">' + (it ? figFor(it) : '') + '</div>' : '') +
+    var alt = it ? title(it) : ttl;
+    var vis = '<div class="vis ' + (visCls || 'cos') + '">' +
+      '<img class="preview" alt="' + esc(alt) + '" src="' + esc(link.image) + '" width="900" height="1200" loading="lazy" decoding="async" referrerpolicy="no-referrer">' +
+      '<div class="preview-fail">' + t('previewFail') + '</div></div>';
+    return '<div class="src' + (on ? ' on' : '') + '"><h4>' + ttl + '</h4>' + vis +
+      '<p class="note">' + t('previewFrom') + '</p>' +
       '<code>' + esc(link.image) + '</code>' + (note ? '<div class="note">' + esc(note) + '</div>' : '') +
       '<div class="row"><a class="btn pri sm" href="' + esc(link.image) + '" target="_blank" rel="noopener">' + t('openImg') + '</a>' +
       '<button class="btn sm" type="button" data-act="home" data-home="' + esc(link.home) + '" data-id="' + esc(link.search) + '">' + t('openHome') + '</button></div></div>';
@@ -295,16 +300,26 @@
       var cc = ccatBy[it.c];
       h += head(it.zh || it.kw, it.kw, '<span>' + esc(it.id) + '</span>' + tag(it.set === 'anime' ? 'COSTUME-ANIME-DB' : 'COSTUME-DB-01') + tag(L(cc) + ' / ' + cc.ja) + (it.col ? tag(it.col) : '') + (it.adult ? '<span class="b18" style="position:static">18+</span>' : ''));
       if (it.t.length) h += '<div class="msec"><div class="row">' + it.t.map(function (x) { return tag(x); }).join('') + '</div></div>';
-      h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, it.set === 'anime' ? 'COSTUME-ANIME-DB · ギア' : 'COSTUME-DB-01 · ギア', PR.links.costume(it.set, it.id), '', '') + '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
+      h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, it.set === 'anime' ? 'COSTUME-ANIME-DB · ギア' : 'COSTUME-DB-01 · ギア', PR.links.costume(it.set, it.id), '', 'cos', it) + '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
       h += '<div class="msec"><h3>Prompt</h3>' + promptBlock(PR.costume(it)) + '</div><div class="keys">↑ ↓ · Esc</div>';
     } else {
       var st = R.styles[it.st], hr = hairBy[it.h], sec = secBy[it.sec];
       h += head(title(it), st.ja ? st.en + ' · ' + st.ja : hr.en, '<span>' + esc(it.id) + '</span>' + tag(L(sec)) + tag(L(hr) + ' / ' + hr.ja) + tag('CC0 1.0'));
       h += '<div class="msec"><div class="tip" style="margin-top:0">' + esc(L(sec.note)) + '</div></div>';
-      h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, 'AIモデル顔データベース · あぎ', PR.links.portrait(it), S.lang === 'en' ? 'The "open site" link opens the gallery pre-filtered to this section and hair length.' : '「打开原站」会直接筛到该分区与发长。', '') + '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
+      h += '<div class="msec"><h3>' + t('openSrc') + '</h3>' + srcBox(true, 'AIモデル顔データベース · あぎ', PR.links.portrait(it), S.lang === 'en' ? 'The "open site" link opens the gallery pre-filtered to this section and hair length.' : '「打开原站」会直接筛到该分区与发长。', 'por', it) + '<div class="notice" style="margin-top:10px">' + t('noImgNote') + '</div></div>';
       h += '<div class="msec"><h3>Prompt</h3>' + promptBlock(PR.portrait(it, st, hr, sec)) + '</div><div class="keys">↑ ↓ · Esc</div>';
     }
     $('#modalIn').innerHTML = h;
+    Array.prototype.forEach.call($('#modalIn').querySelectorAll('img.preview'), function (img) {
+      img.addEventListener('error', function () {
+        var box = img.closest('.vis');
+        if (box) box.classList.add('is-fail');
+      });
+      if (img.complete && img.naturalWidth === 0) {
+        var box = img.closest('.vis');
+        if (box) box.classList.add('is-fail');
+      }
+    });
   }
   function stepDetail(d) {
     var i = S.list.findIndex(function (x) { return x.k === M.k; }); if (i < 0) return;
@@ -382,8 +397,8 @@
       ['mugicha-AI/ComfyUI-PoseAtlas', '—', zh ? '参考（未取数据）' : 'Reference (no data used)']
     ];
     var h = '<div class="about"><div class="panel"><h2>' + (zh ? '来源与授权' : 'Sources & license') + '</h2><p class="lead">' + (zh ?
-      '本站是一个<strong>文字索引 + prompt 工具</strong>：只收录姿势名、分类、视角、衣装关键词、发型等元数据，并据此生成可直接复制的生图 prompt。所有图片都留在原站，本站不托管、不嵌入、不批量抓取任何图片。' :
-      'This site is a <strong>text index + prompt tool</strong>: it only stores metadata (pose names, categories, angles, outfit keywords, hairstyles) and builds copy-ready prompts from it. All images stay on the original sites; nothing is hosted, embedded or scraped here.') + '</p>' +
+      '本站是一个<strong>文字索引 + prompt 工具</strong>：只收录姿势名、分类、视角、衣装关键词、发型等元数据，并据此生成可直接复制的生图 prompt。本站不托管、不转存原图，也不在列表中铺开缩略图；仅在你打开某一项详情时，从原站地址加载这一张预览。禁止批量下载或自动抓取。' :
+      'This site is a <strong>text index + prompt tool</strong>: it only stores metadata (pose names, categories, angles, outfit keywords, hairstyles) and builds copy-ready prompts from it. Images are not re-hosted or shown as a thumbnail grid; when you open one item, its preview loads from the original site. Bulk download and automated scraping are not allowed.') + '</p>' +
       '<div class="stats">' + stat(c.poses, zh ? '姿势组' : 'poses') + stat(c.angles, zh ? '视角' : 'angles') + stat(c.poseImagesPerMode * 2, zh ? '线稿+深度 图位' : 'line + depth images') +
       stat(c.costumesReal + c.costumesAnime, zh ? '衣装（写实+二次元）' : 'outfits') + stat(c.portraits, zh ? '人像' : 'portraits') +
       stat(c.poseImagesPerMode * 2 * 2 + (c.costumesReal + c.costumesAnime + c.portraits) * 2, zh ? '可复制 prompt（中+英）' : 'copyable prompts (zh+en)') + '</div></div>';
@@ -406,11 +421,11 @@
       repos.map(function (r) { return '<tr><td><a href="https://github.com/' + r[0] + '" target="_blank" rel="noopener">' + r[0] + '</a></td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('') + '</table>' +
       '<p style="color:var(--tx2);font-size:13px">' + (zh ? '本站代码以 MIT 授权；图片版权归原作者，不随 MIT。姿势名称、分类及衣装关键词出自原站目录，按原作者署名使用。' : 'Site code is MIT. Image copyright stays with the original authors and is not covered by MIT. Pose names, categories and outfit keywords come from the original catalogs and are credited to their authors.') + '</p>' +
       '<h3>' + (zh ? '原站深链接说明' : 'About deep links') + '</h3><ul>' + (zh ? [
-        '姿势线稿/深度、衣装原站都是单页图库，<b>没有逐条详情页 URL</b>。本站「原站单图」直接打开原站服务器上的那一张图，例如 <code>https://ai-pose-gallery.pages.dev/img/full_sexy_P001_front.png</code>、<code>https://ai-pose-depth-gallery.pages.dev/img/full_sexy_P001_front.png</code>。',
+        '姿势线稿/深度、衣装原站都是单页图库，<b>没有逐条详情页 URL</b>。详情里的预览和「原站单图」都指向原站服务器上的那一张图（本站不转存），例如 <code>https://ai-pose-gallery.pages.dev/img/full_sexy_P001_front.png</code>、<code>https://ai-pose-depth-gallery.pages.dev/img/full_sexy_P001_front.png</code>。',
         '「打开原站并复制 ID」打开原站首页并把 ID 复制到剪贴板，在原站搜索框粘贴即可定位（原站搜索支持 ID）。',
         '人像原站支持 <code>#sec=styling&hair=ロング</code> 形式的筛选链接，本站直接链到对应分区与发长。'
       ] : [
-        'The pose and costume originals are single-page galleries with <b>no per-item URL</b>. "Original image" opens that single image on the original server, e.g. <code>https://ai-pose-gallery.pages.dev/img/full_sexy_P001_front.png</code>.',
+        'The pose and costume originals are single-page galleries with <b>no per-item URL</b>. The in-detail preview and "Original image" both point at that single image on the original server (not re-hosted), e.g. <code>https://ai-pose-gallery.pages.dev/img/full_sexy_P001_front.png</code>.',
         '"Open site & copy ID" opens the gallery and copies the ID — paste it into the site\'s search box.',
         'The portrait site supports <code>#sec=styling&hair=ロング</code> filter links, which we use.'
       ]).map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +

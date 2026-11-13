@@ -14,7 +14,7 @@
   var HAIR_JA = { short: 'ショート', medium: 'ミディアム', semilong: 'セミロング', long: 'ロング' };
 
   /* 原站链接：原站是单页应用，没有逐条详情页；
-     home = 原站首页（其搜索框支持按 ID 检索），image = 原站上该张图的单图地址（仅以链接打开，不嵌入）。 */
+     home = 原站首页（其搜索框支持按 ID 检索），image = 原站上该张图的单图地址（详情预览与「原站单图」均指向此地址，本站不转存）。 */
   var links = {
     pose: function (mode, poseId, angle) {
       var s = SITES[mode === 'depth' ? 'depth' : 'line'];
