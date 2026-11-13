@@ -1,22 +1,22 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light" data-adult="0">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PoseAtlas · 角色姿势资产库</title>
-<meta name="description" content="288 组角色姿势（线稿 / 深度图）、2,727 套衣装、1,499 张人像的中英文生图 prompt 索引。列表显示原站官方缩略图，详情加载原图预览；本站不转存原图。">
-<meta name="theme-color" content="#0E0D0B">
+<meta name="description" content="288 组角色姿势（线稿 / 深度图）、2,727 套衣装、1,499 张人像的中英文生图 prompt 索引。全年龄与 18+ 两种模式可切换；列表显示原站官方缩略图，详情加载原图预览。本站不转存原图。">
+<meta name="theme-color" content="#ffffff" id="themeColor">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https://ai-pose-gallery.pages.dev https://ai-pose-depth-gallery.pages.dev https://ai-costume-gallery.pages.dev https://ai-costume-anime-gallery.pages.dev https://ai-portrait-gallery.pages.dev; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
-<header class="top">
+<header class="top" id="top">
   <div class="top-in">
     <a class="brand" href="#poses" aria-label="PoseAtlas">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="7" r="3.2"/><path d="M16 11v9m0 0-5 8m5-8 5 8M9 14l7-2 7 2"/></svg>
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/><rect x="14" y="14" width="16" height="16" rx="4" fill="#fff"/><rect x="34" y="14" width="16" height="16" rx="4" fill="#fff" fill-opacity=".72"/><rect x="14" y="34" width="16" height="16" rx="4" fill="#fff" fill-opacity=".72"/><rect x="34" y="34" width="16" height="16" rx="4" fill="#fff" fill-opacity=".45"/></svg>
       <span><b>PoseAtlas</b><small data-i="brandSub">角色姿势资产库</small></span>
     </a>
     <nav class="tabs" id="tabs" aria-label="主导航">
@@ -25,21 +25,42 @@
       <a href="#portraits" data-tab="portraits"><span data-i="tabPortraits">人像</span><em id="cnt-portraits"></em></a>
       <a href="#recipe" data-tab="recipe"><span data-i="tabRecipe">配方</span><em id="cnt-recipe"></em></a>
       <a href="#favs" data-tab="favs"><span data-i="tabFavs">收藏</span><em id="cnt-favs"></em></a>
+      <a href="#uploads" data-tab="uploads"><span data-i="tabUploads">上传</span><em id="cnt-uploads"></em></a>
       <a href="#about" data-tab="about"><span data-i="tabAbout">来源与授权</span></a>
     </nav>
     <div class="top-act">
-      <button class="pill" id="adultBtn" type="button" aria-pressed="false"></button>
+      <div class="modes" role="group" aria-label="浏览模式">
+        <button type="button" id="modeSafe" aria-pressed="true"><span class="lab" data-i="modeSafe">全年龄</span></button>
+        <button type="button" id="modeAdult" class="ad" aria-pressed="false">18+</button>
+      </div>
+      <button class="pl-adult" id="adultBtn" type="button" role="switch" aria-checked="false"><span class="trk" aria-hidden="true"></span>18+</button>
+      <button class="ic" id="themeBtn" type="button" aria-label="Theme">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
       <button class="pill" id="langBtn" type="button" aria-label="Language">EN</button>
     </div>
   </div>
 </header>
+<div class="modebar" id="modebar" hidden>
+  <div class="modebar-in">
+    <b data-i="modeOnLabel">当前为 18+ 模式</b>
+    <span data-i="modeOnHint">已显示成人向内容。可在此上传你拥有权利的素材；请勿转存原站图片。</span>
+    <a class="btn" href="#uploads" data-i="modeUpload">去上传</a>
+    <button class="btn ghost" id="modeOff" type="button" data-i="modeBack">返回全年龄</button>
+  </div>
+</div>
 
 <main id="main">
+  <section class="phead" id="phead"></section>
   <section class="toolbar" id="toolbar" hidden>
-    <div class="search">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" autocomplete="off" spellcheck="false">
-      <kbd>/</kbd>
+    <div class="trow">
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false">
+        <kbd>/</kbd>
+      </div>
+      <button type="button" class="toggle" id="modeToggle" hidden role="switch" aria-checked="false"><span class="t-a" data-i="modeLine">线稿</span><span class="t-b" data-i="modeDepth">深度图</span></button>
     </div>
     <div class="filters" id="filters"></div>
     <div class="resultbar"><span id="resultInfo"></span><span class="hint" id="hint"></span></div>
@@ -53,11 +74,11 @@
 <dialog id="modal" class="modal" aria-labelledby="mTitle"><div class="modal-in" id="modalIn"></div></dialog>
 <dialog id="gate" class="modal gate">
   <div class="modal-in">
-    <h2 data-i="gateTitle">显示 18+ 内容？</h2>
-    <p data-i="gateBody">部分姿势（全身性感系、上半身性感/强调系、双人系）与衣装（内衣・睡衣、性感穿搭）为成人向。确认你已年满 18 周岁，且所在地区允许浏览此类内容。详情中的预览图会从原站加载，请勿批量下载。</p>
+    <h2 data-i="gateTitle">进入 18+ 模式？</h2>
+    <p data-i="gateBody">18+ 模式会显示全身性感系、上半身性感/强调系、双人系姿势，以及内衣・睡衣、性感穿搭等成人向内容，并开放上传入口。请确认你已年满 18 周岁，且所在地区允许浏览此类内容。全年龄模式可随时切回。请勿批量下载原站图片。</p>
     <div class="row end">
-      <button class="btn ghost" id="gateNo" type="button" data-i="gateNo">保持隐藏</button>
-      <button class="btn warn" id="gateYes" type="button" data-i="gateYes">我已年满 18 岁，显示</button>
+      <button class="btn ghost" id="gateNo" type="button" data-i="gateNo">留在全年龄</button>
+      <button class="btn warn" id="gateYes" type="button" data-i="gateYes">我已年满 18 岁，进入 18+ 模式</button>
     </div>
   </div>
 </dialog>
